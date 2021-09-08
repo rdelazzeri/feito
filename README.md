@@ -20,9 +20,11 @@ Criar o projeto
 ### Ativar o GIT
 
 Inicializar o GIT
+
     git init
 
 Criar o gitignore
+
     .gitignore
 
 Adicionar todo conteúdo da pasta do projeto (exceto o que estiver no gitignore)
@@ -30,9 +32,11 @@ Adicionar todo conteúdo da pasta do projeto (exceto o que estiver no gitignore)
     git add .
 
 Verificar o status do git
+
     git status
 
 Se identificar no git
+
     git config --global user.email "you@example.com"
     git config --global user.name "Your Name"
 
