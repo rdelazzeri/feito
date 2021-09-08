@@ -52,21 +52,6 @@ Seguindo os passos apresentados no github
 Mandando os dados do commit para o github
     git push -u origin main
     
-## Adicionar a APP core
-Esta app será o núcleo do projeto, lidando com a autenticação dos usuários
-
-    python manage.py startapp core
-
-Atualizar o `Setings.py` Installed_apps:
-
-    INSTALLED_APPS = [
-        ...
-        #apps de terceiros
-
-        #My apps
-        'core'
-    ]
-
 Atualizar o idioma e fuso horário:
 
     LANGUAGE_CODE = 'pt-br'
@@ -129,3 +114,41 @@ Alterar o setings.py
 Executar o comando:
 
     python contrib/env_gen.py
+
+## Adicionar a APP core
+Esta app será o núcleo do projeto, lidando com a autenticação dos usuários
+
+    python manage.py startapp core
+
+Atualizar o `Setings.py` Installed_apps:
+
+    INSTALLED_APPS = [
+        ...
+        #apps de terceiros
+
+        #My apps
+        'core'
+    ]
+
+Seguindo passos de [Regis]github.com/rg3915
+Em core.models, incluir isso:
+
+    from django.db import models
+
+
+    class TimeStampedModel(models.Model):
+        created = models.DateTimeField(
+            'criado em',
+            auto_now_add=True,
+            auto_now=False
+        )
+        modified = models.DateTimeField(
+            'modificado em',
+            auto_now_add=False,
+            auto_now=True
+        )
+
+        class Meta:
+            abstract = True
+
+Criar a app `prod`, incluir no setings.py
