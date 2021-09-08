@@ -73,9 +73,11 @@ Atualizar o idioma e fuso horário:
     TIME_ZONE = 'America/Sao_Paulo'
 
 Rodar o servidor
+
     python manage.py runserver
 
 Se estiver tudo bem, hora de criar as tabelas
+
     python manage.py migrate
 
 Criar o superuser
@@ -124,4 +126,6 @@ Alterar o setings.py
     DEBUG = config('DEBUG', default=False, cast=bool)
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=[], cast=Csv())
 
+Executar o comando:
 
+    python contrib/env_gen.py
