@@ -152,3 +152,9 @@ Em core.models, incluir isso:
             abstract = True
 
 Criar a app `prod`, incluir no setings.py
+Criar a app `estoque`
+Ajustar o admim
+
+## Criando o template base
+
+
