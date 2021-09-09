@@ -23,10 +23,11 @@
 
   </head>
   <body>
+    {% if user.is_authenticated %}
+      {% include "includes/nav.html" %}
+    {% endif %}
 
-    {% include "includes/nav.html" %}
-
-    <div class="container">
+        <div class="container">
       {% block content %}{% endblock content %}
     </div>
 
