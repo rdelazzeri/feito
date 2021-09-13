@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     #apps de terceiros
     'crispy_forms',
+    'django_tables2',
 
     #My apps
     'core',
