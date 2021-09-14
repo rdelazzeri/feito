@@ -33,7 +33,9 @@ class Prod(models.Model):
                              blank=True,
                              null=True)
     grupo = models.ForeignKey(Grupo, on_delete = PROTECT)
+    grupoCyber = models.IntegerField(blank=True, null=True)
     unid = models.ForeignKey(Unid, on_delete = PROTECT)
+    unidCyber = models.CharField(max_length=4, blank=True, null=True)
     pLiq = models.DecimalField(
         max_digits=15,
         decimal_places=3,
@@ -52,13 +54,25 @@ class Prod(models.Model):
         verbose_name="Preço Aquisição",
         blank=True, null=True
         )
+    prVenda = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        verbose_name="Preço Venda",
+        blank=True, null=True
+        )
+    prCusto = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        verbose_name="Preço Custo",
+        blank=True, null=True
+        )
     cmv = models.DecimalField(
         max_digits=15,
         decimal_places=3,
         verbose_name="CMV",
         blank=True, null=True
         )
-    qEst = models.DecimalField(
+    qEstoque = models.DecimalField(
         max_digits=15,
         decimal_places=3,
         verbose_name="Estoque",
@@ -124,6 +138,7 @@ class Prod(models.Model):
         blank=True, null=True,
         on_delete = PROTECT
         )
+    NCMCyber = models.CharField(max_length=8, blank=True, null=True)
     origFiscal = models.CharField(
         "Origem Fiscal",
         max_length=2,

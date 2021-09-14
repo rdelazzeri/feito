@@ -1,0 +1,29 @@
+Tabela de produtos cybersul: ACEC1101
+
+#Campos de controle de data
+
+Data de criação: 
+usuário de criação:
+Data de alteração:
+usuário de alteração:
+
+
+
+
+    CODIGO,
+    DESCRICAO,
+    COMPLEMENTO_DESC,
+    GRUPO,
+    COD_EMB_COLECAO,
+    UNIDADE_MEDIDA,
+    PESO_MERCADORIA,
+    CLASSIFICACAO_FISCAL,
+    ESTOQUE_MINIMO,
+    ESTOQUE_MAXIMO,
+    PCO_VENDA,
+    PCO_CUSTO,
+    PCO_MDO,
+    ESTOQUE,
+    DATA_INCLUSAO,
+    DATA_MODIFICACAO,
+    
