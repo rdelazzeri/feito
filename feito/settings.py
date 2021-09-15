@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'core',
     'prod',
     'estoque',
+    'cyber_sinc',
 
 ]
 

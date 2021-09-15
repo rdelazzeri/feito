@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>Sistema Gerencial Feito!!</h1>
+        <p>Módulo de importação/sincronização com o sistema Cybersul</p>
+        <p><a href="/cyber/sinc_unid/">Sincronizar Unidades</a></p>
+        <p><a href="/cyber/sinc_ncm/">Sincronizar NCM</a></p> 
+        <p><a href="/cyber/sinc_grupos">Sincronizar Grupos</a></p>
+        <p><a href="/cyber/sinc_prod">Sincronizar Produtos</a></p>     
+        {{ context }}
+    </div>
+</div>
+{% endblock content %}

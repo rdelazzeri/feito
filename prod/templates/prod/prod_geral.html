@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>Bem-vindo!</h1>
+        <p>Sistema gerencial Feito!</p>
+        <p><a href="/prod/sinc_unid/">Sincronizar Unidades</a></p>
+        <p><a href="/prod/sinc_ncm/">Sincronizar NCM</a></p> 
+        <p><a href="/prod/sinc_grupos">Sincronizar Grupos</a></p>
+        <p><a href="/prod/sinc_prod">Sincronizar Produtos</a></p>     
+        {{ context }}
+    </div>
+</div>
+{% endblock content %}

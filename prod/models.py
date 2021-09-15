@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 
 class Unid(models.Model):
     unid = models.CharField("Unidade", max_length=3)
-    desc = models.CharField("Descrição", max_length=30)
+    desc = models.CharField("Descrição", max_length=30, blank=True, null=True)
 
     def __str__(self):
         return self.unid
@@ -19,7 +19,7 @@ class Grupo(models.Model):
         return self.desc
 
 class NCM(models.Model):
-    cod = models.CharField("NCM", max_length=8)
+    cod = models.CharField("NCM", max_length=12)
     desc = models.CharField("Descrição", max_length=40)
 
     def __str__(self):
