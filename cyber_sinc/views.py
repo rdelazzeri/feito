@@ -1,9 +1,15 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from prod.models import Prod, Produto, Grupo, Unid, NCM
+from prod.models import Prod, Prod, Grupo, Unid, NCM, ProdComp
 import firebirdsql
 
+
+@login_required()
+def cyber_sinc(request):
+    template_name = 'cyber_sinc/cyber_sinc.html'    
+    context = {'context': ''}
+    return render(request, template_name, context)
 
 @login_required()
 def cyber_sinc_grupos(request):
@@ -165,4 +171,37 @@ def prod_sinc_cyber(request):
     print(request.user)
     
     context = {'context': 'Produtos feito' }
+    return render(request, template_name, context)
+
+
+@login_required()
+def cyber_sinc_composicao(request):
+    template_name = 'cyber_sinc/cyber_sinc.html'
+    conn = firebirdsql.connect(dsn='localhost:/cybersul/banco/dadosadm.fdb', user='sysdba', password='masterkey', charset='ISO8859_1')
+    cur = conn.cursor()
+    cur.execute('select prcodigo, cmcodigo, cmquantidade, ugmodificadoreg, uginseridoreg from agpc03cm')
+    
+    ProdComp.objects.all().delete()
+
+    for c in cur.fetchall():
+        
+        try:
+            prodprod = Prod.objects.get(cod = c[0])
+        except:
+            prodprod = Prod.objects.get(cod = '999')
+        
+        try:
+            prodcomp = Prod.objects.get(cod = c[1])
+        except:
+            prodcomp = Prod.objects.get(cod = '999')
+
+        pr = ProdComp()
+        pr.codProd = prodprod
+        pr.codComp = prodcomp
+        pr.qtd = c[2]
+        pr.save()
+        
+    conn.close()
+    
+    context = {'context': 'grupos feito'}
     return render(request, template_name, context)

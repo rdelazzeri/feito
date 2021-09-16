@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models.deletion import PROTECT
 from django.urls import reverse_lazy
+from django.contrib.auth.models import User
+from datetime import datetime    
 
 
 class Unid(models.Model):
@@ -24,6 +26,21 @@ class NCM(models.Model):
 
     def __str__(self):
         return self.cod
+
+class OrigemFiscal(models.Model):
+    cod = models.CharField("Origem Fiscal", max_length=12)
+    desc = models.CharField("Descrição", max_length=40)
+
+    def __str__(self):
+        return self.cod
+
+class TipoProduto(models.Model):
+    cod = models.CharField("Tipo de Produto", max_length=12)
+    desc = models.CharField("Descrição", max_length=40)
+
+    def __str__(self):
+        return self.cod
+
 #Produto
 class Prod(models.Model):
     cod = models.CharField("Código", max_length=15)
@@ -36,6 +53,7 @@ class Prod(models.Model):
     grupoCyber = models.IntegerField(blank=True, null=True)
     unid = models.ForeignKey(Unid, on_delete = PROTECT)
     unidCyber = models.CharField(max_length=4, blank=True, null=True)
+    tipoProduto = models.ForeignKey(TipoProduto, on_delete = PROTECT, blank=True, null=True)
     pLiq = models.DecimalField(
         max_digits=15,
         decimal_places=3,
@@ -109,6 +127,7 @@ class Prod(models.Model):
         blank=True, null=True
         )
     #Impostos
+    origemFiscal = models.ForeignKey(OrigemFiscal, on_delete = PROTECT, blank=True, null=True)
     ipiCompra = models.DecimalField(
         max_digits=4,
         decimal_places=2,
@@ -138,7 +157,7 @@ class Prod(models.Model):
         blank=True, null=True,
         on_delete = PROTECT
         )
-    NCMCyber = models.CharField(max_length=8, blank=True, null=True)
+    NCMCyber = models.CharField(max_length=11, blank=True, null=True)
     origFiscal = models.CharField(
         "Origem Fiscal",
         max_length=2,
@@ -151,8 +170,13 @@ class Prod(models.Model):
         )
     obs = models.TextField(blank=True, null=True)
 
+    criado = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    criadoPor = models.ForeignKey(User, related_name='prod_criou', on_delete=models.PROTECT, blank=True, null=True)
+    modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
+    modificadoPor = models.ForeignKey(User, related_name='prod_modificou', on_delete=models.PROTECT, blank=True, null=True)
+
     def __str__(self):
-        return self.desc
+        return self.desc + ' - criado em: ' + self.criado.strftime("%m/%d/%Y, %H:%M:%S") + ' - modificado em: ' + self.modificado.strftime("%m/%d/%Y, %H:%M:%S")
 
 class ProdComp(models.Model):
     codProd = models.ForeignKey(
@@ -172,6 +196,10 @@ class ProdComp(models.Model):
         decimal_places=4,
         verbose_name="Quantidade"
         )
+    criado = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    criadoPor = models.ForeignKey(User, related_name='prodcomp_criou', on_delete=models.PROTECT, blank=True, null=True)
+    modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
+    modificadoPor = models.ForeignKey(User, related_name='prodcomp_modificou', on_delete=models.PROTECT, blank=True, null=True)
 
 #Obsoleto
 class Produto(models.Model):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Grupo, Prod, Produto, Unid, NCM
+from .models import Grupo, Prod, ProdComp, Produto, Unid, NCM, TipoProduto, OrigemFiscal
 
 # Register your models here.
 
@@ -15,10 +15,34 @@ class GrupoAdmin(admin.ModelAdmin):
 class GrupoAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(Prod)
+@admin.register(TipoProduto)
 class GrupoAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(OrigemFiscal)
+class GrupoAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(ProdComp)
+class GrupoAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Prod)
+class GrupoAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+        'cod',
+        'desc',
+        'unid',
+        'qEstoque',
+        'grupo',
+    )
+    search_fields = ('desc', 'cod',)
+    list_filter = ('grupo',)
+
+
+
+'''
 @admin.register(Produto)
 class ProdutoAdmin(admin.ModelAdmin):
     list_display = (
@@ -31,3 +55,5 @@ class ProdutoAdmin(admin.ModelAdmin):
     )
     search_fields = ('produto',)
     list_filter = ('importado',)
+'''
+

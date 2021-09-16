@@ -17,7 +17,7 @@ def prod_list(request):
     context = {'object_list': objects}
     return render(request, template_name, context)
 
-
+'''
 @login_required()
 def cyber_sinc_grupos(request):
     template_name = 'prod/prod_geral.html'
@@ -179,3 +179,5 @@ def prod_sinc_cyber(request):
     
     context = {'context': 'Produtos feito' }
     return render(request, template_name, context)
+
+'''
