@@ -183,14 +183,12 @@ class ProdComp(models.Model):
         Prod,
         related_name='codigoProd',
         verbose_name='CodProd',
-        fk_name='fk_cod_prod',
         on_delete = CASCADE
         )
     codComp = models.ForeignKey(
         Prod,
         related_name='codigoComp',
         verbose_name="CodComp",
-        fk_name='fk_cod_comp',
         on_delete = CASCADE
         )
     qtd = models.DecimalField(
