@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models.deletion import PROTECT
+from django.db.models.deletion import CASCADE, PROTECT
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from datetime import datetime    
@@ -49,11 +49,11 @@ class Prod(models.Model):
                              max_length=50,
                              blank=True,
                              null=True)
-    grupo = models.ForeignKey(Grupo, on_delete = PROTECT)
+    grupo = models.ForeignKey(Grupo, on_delete = CASCADE)
     grupoCyber = models.IntegerField(blank=True, null=True)
-    unid = models.ForeignKey(Unid, on_delete = PROTECT)
+    unid = models.ForeignKey(Unid, on_delete = CASCADE)
     unidCyber = models.CharField(max_length=4, blank=True, null=True)
-    tipoProduto = models.ForeignKey(TipoProduto, on_delete = PROTECT, blank=True, null=True)
+    tipoProduto = models.ForeignKey(TipoProduto, on_delete = CASCADE, blank=True, null=True)
     pLiq = models.DecimalField(
         max_digits=15,
         decimal_places=3,
@@ -127,7 +127,7 @@ class Prod(models.Model):
         blank=True, null=True
         )
     #Impostos
-    origemFiscal = models.ForeignKey(OrigemFiscal, on_delete = PROTECT, blank=True, null=True)
+    origemFiscal = models.ForeignKey(OrigemFiscal, on_delete = CASCADE, blank=True, null=True)
     ipiCompra = models.DecimalField(
         max_digits=4,
         decimal_places=2,
@@ -155,7 +155,7 @@ class Prod(models.Model):
         NCM,
         verbose_name="NCM",
         blank=True, null=True,
-        on_delete = PROTECT
+        on_delete = CASCADE
         )
     NCMCyber = models.CharField(max_length=11, blank=True, null=True)
     origFiscal = models.CharField(
@@ -171,9 +171,9 @@ class Prod(models.Model):
     obs = models.TextField(blank=True, null=True)
 
     criado = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    criadoPor = models.ForeignKey(User, related_name='prod_criou', on_delete=models.PROTECT, blank=True, null=True)
+    criadoPor = models.ForeignKey(User, related_name='prod_criou', on_delete=models.CASCADE, blank=True, null=True)
     modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
-    modificadoPor = models.ForeignKey(User, related_name='prod_modificou', on_delete=models.PROTECT, blank=True, null=True)
+    modificadoPor = models.ForeignKey(User, related_name='prod_modificou', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.desc + ' - criado em: ' + self.criado.strftime("%m/%d/%Y, %H:%M:%S") + ' - modificado em: ' + self.modificado.strftime("%m/%d/%Y, %H:%M:%S")
@@ -181,15 +181,17 @@ class Prod(models.Model):
 class ProdComp(models.Model):
     codProd = models.ForeignKey(
         Prod,
-        related_name='codProd',
-        verbose_name="CodProd",
-        on_delete = PROTECT
+        related_name='codigoProd',
+        verbose_name='CodProd',
+        fk_name='fk_cod_prod',
+        on_delete = CASCADE
         )
     codComp = models.ForeignKey(
         Prod,
-        related_name='codComp',
+        related_name='codigoComp',
         verbose_name="CodComp",
-        on_delete = PROTECT
+        fk_name='fk_cod_comp',
+        on_delete = CASCADE
         )
     qtd = models.DecimalField(
         max_digits=12,
@@ -197,9 +199,9 @@ class ProdComp(models.Model):
         verbose_name="Quantidade"
         )
     criado = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    criadoPor = models.ForeignKey(User, related_name='prodcomp_criou', on_delete=models.PROTECT, blank=True, null=True)
+    criadoPor = models.ForeignKey(User, related_name='prodcomp_criou', on_delete=models.CASCADE, blank=True, null=True)
     modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
-    modificadoPor = models.ForeignKey(User, related_name='prodcomp_modificou', on_delete=models.PROTECT, blank=True, null=True)
+    modificadoPor = models.ForeignKey(User, related_name='prodcomp_modificou', on_delete=models.CASCADE, blank=True, null=True)
 
 #Obsoleto
 class Produto(models.Model):

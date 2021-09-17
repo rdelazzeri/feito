@@ -60,6 +60,8 @@ def cyber_sinc_unid(request):
             ['UN' , 'Unidade'],
             ['KG' , 'Quilograma'],
             ['TON' , 'Tonelada'],
+            ['M', 'Metro'],
+            ['NC', 'Não Cadastrado'],
     ]
         
     Unid.objects.all().delete()
@@ -95,7 +97,11 @@ def cyber_sinc_ncm(request):
         nc.save()
         
     conn.close()
-    
+    nc = NCM()
+    nc.cod = '0'
+    nc.desc = 'Não Cadastrado'
+    nc.save()
+
     context = {'context': 'NCM feito'}
     return render(request, template_name, context)
 
