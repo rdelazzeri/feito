@@ -176,7 +176,7 @@ class Prod(models.Model):
     modificadoPor = models.ForeignKey(User, related_name='prod_modificou', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.desc + ' - criado em: ' + self.criado.strftime("%m/%d/%Y, %H:%M:%S") + ' - modificado em: ' + self.modificado.strftime("%m/%d/%Y, %H:%M:%S")
+        return self.cod + ' - ' + self.desc 
 
 class ProdComp(models.Model):
     codProd = models.ForeignKey(
@@ -200,6 +200,9 @@ class ProdComp(models.Model):
     criadoPor = models.ForeignKey(User, related_name='prodcomp_criou', on_delete=models.CASCADE, blank=True, null=True)
     modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
     modificadoPor = models.ForeignKey(User, related_name='prodcomp_modificou', on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+            return str(self.codProd.pk) + ' - ' + str(self.codComp.pk)
 
 #Obsoleto
 class Produto(models.Model):

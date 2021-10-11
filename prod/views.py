@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django_tables2 import SingleTableView
 from django_tables2   import RequestConfig
@@ -9,70 +9,32 @@ from .forms import *
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.db import transaction
-
-'''
-class Prod_Create(CreateView):
-    model = Prod
-    template_name = 'prod/prod_create.html'
-    form_class = ProdForm
-    success_url = None
-
-    def get_context_data(self, **kwargs):
-        data = super(Prod_Create, self).get_context_data(**kwargs)
-        if self.request.POST:
-            data['codComp'] = ProdCompFormSet(self.request.POST)
-        else:
-            data['codComp'] = ProdCompFormSet()
-        return data
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        Comp = context['codComp']
-        with transaction.atomic():
-            form.instance.criadoPor = self.request.user
-            self.object = form.save()
-            if Comp.is_valid():
-                Comp.instance = self.object
-                Comp.save()
-        return super(Prod_Create, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('Prod:prod_detail', kwargs={'pk': self.object.pk})
-
-class Prod_Update(CreateView):
-    model = Prod
-    template_name = 'prod/prod_create.html'
-    form_class = ProdForm
-    success_url = None
-
-    def get_context_data(self, **kwargs):
-        data = super(Prod_Update, self).get_context_data(**kwargs)
-        if self.request.POST:
-            data['codComp'] = ProdCompFormSet(self.request.POST, instance=self.object)
-        else:
-            data['codComp'] = ProdCompFormSet(instance=self.object)
-        return data
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        Comp = context['codComp']
-        with transaction.atomic():
-            form.instance.criadoPor = self.request.user
-            self.object = form.save()
-            if Comp.is_valid():
-                Comp.instance = self.object
-                Comp.save()
-        return super(Prod_Create, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('Prod:prod_detail', kwargs={'pk': self.object.pk})
+from django.forms import modelformset_factory, inlineformset_factory
 
 
-'''
-
-
-
-
+def prodcomp(request, produto_id):
+    produto = Prod.objects.get(pk=produto_id)
+    #componentesFormSet = modelformset_factory(ProdComp, fields=('codComp', 'qtd',))
+    componentesFormSet = inlineformset_factory(Prod, ProdComp, fk_name='codProd', fields=('codComp', 'qtd',))
+    
+    if request.method == 'POST':
+        #formset = componentesFormSet(request.POST, queryset=ProdComp.objects.filter(codProd=produto.id))
+        formset = componentesFormSet(request.POST, instance=produto)
+        if formset.is_valid():
+            formset.save()
+            #instances = formset.save(commit=False)
+            #for instance in instances:
+            #    instance.codProd = Prod.objects.get(pk=produto.id)
+            #    instance.save()
+            
+            return redirect('prod.prodcomp', produto_id = produto.id)
+    
+    
+    #formset = componentesFormSet(queryset=ProdComp.objects.filter(codProd=produto.id))
+    formset = componentesFormSet(instance=produto)
+    print(formset)
+    
+    return render(request, 'prod/componentes.html', {'formset' : formset})
 
 
 def prod_list(request):
