@@ -203,6 +203,9 @@ class ProdComp(models.Model):
 
     def __str__(self):
             return str(self.codProd.pk) + ' - ' + str(self.codComp.pk)
+        
+    def get_comp_name(self):
+        return self.codComp.desc
 
 #Obsoleto
 class Produto(models.Model):

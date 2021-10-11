@@ -15,7 +15,7 @@ from django.forms import modelformset_factory, inlineformset_factory
 def prodcomp(request, produto_id):
     produto = Prod.objects.get(pk=produto_id)
     #componentesFormSet = modelformset_factory(ProdComp, fields=('codComp', 'qtd',))
-    componentesFormSet = inlineformset_factory(Prod, ProdComp, fk_name='codProd', fields=('codComp', 'qtd',))
+    componentesFormSet = inlineformset_factory(Prod, ProdComp, fk_name='codProd', form=CompForm) 
     
     if request.method == 'POST':
         #formset = componentesFormSet(request.POST, queryset=ProdComp.objects.filter(codProd=produto.id))

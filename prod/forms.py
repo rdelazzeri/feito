@@ -3,10 +3,10 @@ from .models import *
 from django.forms.models import inlineformset_factory
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Fieldset, Div, HTML, ButtonHolder, Submit
+from django.forms import ModelForm, fields
 
+class CompForm(ModelForm):
+    class Meta:
+        model = ProdComp
+        fields=['codComp.desc', 'qtd',]
 
-class CompForm(forms.Form):
-    codComp = forms.CharField()
-    qtd = forms.DecimalField(decimal_places=3, max_digits=12)
-
-    
