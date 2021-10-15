@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+    <div class="jumbotron">
+        <form method="get">
+            {% crispy filter.form %}
+            <input type="submit" />
+        </form>
+    </div>
+
+    <div class="page-header">
+        <h2><i class="fa fa user"></i>Lista de Produtos</h2>
+        {% render_table filter.qs %}
+    </div>
+
+
+{% endblock %}

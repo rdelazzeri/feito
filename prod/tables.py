@@ -1,4 +1,4 @@
-from prod.models import ProdComp
+from prod.models import ProdComp, Prod
 import django_tables2 as tables
 
 class SincTable(tables.Table):
@@ -9,3 +9,7 @@ class SincTable(tables.Table):
 class CompTable(tables.Table):
     class meta():
         model = ProdComp
+
+class ProdTable(tables.Table):
+    class meta():
+        model = Prod
