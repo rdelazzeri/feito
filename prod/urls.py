@@ -6,6 +6,7 @@ app_name = 'prod'
 
 urlpatterns = [
     path('', v.prod_list, name = 'prod_list'),
+    path('<prod_id>', v.prod_detail, name = 'prod_detail'),
     path('comp/<produto_id>', v.prodcomp, name='prodcomp')
     #path('prodcomp', v.Prod_Create, name = 'prod_create'),
     #path('prodcompup', v.Prod_Update, name = 'prod_update'),

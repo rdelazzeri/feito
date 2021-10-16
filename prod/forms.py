@@ -6,4 +6,11 @@ from crispy_forms.layout import Layout, Field, Fieldset, Div, HTML, ButtonHolder
 from django.forms import ModelForm, fields
 
 
+class SearchProdForm(forms.Form):
+    cod = forms.CharField(max_length=30, label='Código', required=False)
+    desc = forms.CharField(max_length=254, label='Descrição', required=False)
 
+class ProdDetailForm(ModelForm):
+     class Meta:
+         model = Prod
+         fields = '__all__'

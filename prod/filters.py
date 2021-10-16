@@ -5,4 +5,7 @@ from .models import Prod
 class ProdFilter(django_filters.FilterSet):
     class Meta:
         model = Prod
-        fields = ['cod', 'desc',]
+        fields = {
+            'cod': ['istartswith'],
+            'desc': ['icontains'],
+        }

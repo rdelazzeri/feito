@@ -1,5 +1,6 @@
 from prod.models import ProdComp, Prod
 import django_tables2 as tables
+from django_tables2.utils import A 
 
 class SincTable(tables.Table):
     num = tables.Column()
@@ -13,3 +14,7 @@ class CompTable(tables.Table):
 class ProdTable(tables.Table):
     class meta():
         model = Prod
+
+class SearchProdTable(tables.Table):
+    cod = tables.LinkColumn('prod_detail', args=[A('pk')])
+    desc = tables.Column()

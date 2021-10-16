@@ -5,15 +5,12 @@
 {% block content %}
     <div class="jumbotron">
         <form method="get">
-            {{filter.form}}
+            {{ filter }}
             <input type="submit" />
         </form>
     </div>
-
     <div class="page-header">
         <h2><i class="fa fa user"></i>Lista de Produtos</h2>
-        {% render_table filter.qs %}
+        {% render_table table %}
     </div>
-
-
 {% endblock %}
