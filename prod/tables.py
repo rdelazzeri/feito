@@ -16,5 +16,6 @@ class ProdTable(tables.Table):
         model = Prod
 
 class SearchProdTable(tables.Table):
-    cod = tables.LinkColumn('prod_detail', args=[A('pk')])
+    cod = tables.LinkColumn('prod:prod_detail', args=[A('pk')])
+    #cod = tables.Column()
     desc = tables.Column()

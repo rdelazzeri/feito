@@ -43,25 +43,30 @@ def prodcomp(request, produto_id):
 
 def prod_list(request):
     qs = Prod.objects.only('cod', 'desc')
-    
     if request.method == 'GET':
         filter = SearchProdForm(request.GET)
-        qs = qs.filter(cod__istartswith = request.GET['cod'])
-        if request.GET['desc']:
+        if 'cod' in request.GET:
+                    qs = qs.filter(cod__istartswith = request.GET['cod'])
+        if 'desc'in request.GET:
             dd = request.GET['desc'].split(' & ')
             for d in dd:
+                print(d)
                 qs = qs.filter(desc__icontains = d)
-            print(dd)
-        
-        print(request)
-        print(qs)   
     else:
         filter = SearchProdForm()
-        print('else' + request)
+
 
     table = SearchProdTable(qs)
     table.paginate(page=request.GET.get("page", 1), per_page=25)
     return render(request, 'prod/search_prod_form.html', {'filter': filter, 'table': table})
 
-def prod_detail(request):
-    print(request)
+def prod_detail(request, prod_id):
+    instance = Prod.objects.get(id=prod_id)
+    form = ProdDetailForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+        #return redirect('view_lista')
+        #form = ParcForm(form.cleaned_data)
+        
+        return render(request, 'prod/prod_detail.html', {'form': form})
+    return render(request, 'prod/prod_detail.html', {'form': form})

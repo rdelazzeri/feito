@@ -51,7 +51,15 @@ class Prod(models.Model):
                              null=True)
     grupo = models.ForeignKey(Grupo, on_delete = CASCADE)
     grupoCyber = models.IntegerField(blank=True, null=True)
-    unid = models.ForeignKey(Unid, on_delete = CASCADE)
+    unid = models.ForeignKey(Unid, related_name='unid1', on_delete = CASCADE)
+    unid2 = models.ForeignKey(Unid, related_name='unid2',on_delete = CASCADE, blank=True, null=True)
+    fatorUnid = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        default=1,
+        verbose_name="Fator de conversão",
+        blank=True, null=True
+        )
     unidCyber = models.CharField(max_length=4, blank=True, null=True)
     tipoProduto = models.ForeignKey(TipoProduto, on_delete = CASCADE, blank=True, null=True)
     pLiq = models.DecimalField(
