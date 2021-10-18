@@ -5,8 +5,10 @@ from . import views as v
 app_name = 'prod'
 
 urlpatterns = [
-    path('', v.prod_list, name = 'prod_list'),
-    path('<prod_id>', v.prod_detail, name = 'prod_detail'),
+    path('', v.prod_detail, name = 'prod_detail'),
+    path('s', v.prod_list, name = 'prod_list'),
+    path('n', v.prod_new, name = 'prod_new'),
+    path('p<prod_id>', v.prod_detail, name = 'prod_detail'),
     path('comp/<produto_id>', v.prodcomp, name='prodcomp')
     #path('prodcomp', v.Prod_Create, name = 'prod_create'),
     #path('prodcompup', v.Prod_Update, name = 'prod_update'),

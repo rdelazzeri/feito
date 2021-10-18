@@ -43,7 +43,7 @@ class TipoProduto(models.Model):
 
 #Produto
 class Prod(models.Model):
-    cod = models.CharField("Código", max_length=15)
+    cod = models.CharField("Código", max_length=15, unique=True)
     desc = models.CharField("Descrição", max_length=50)
     compl = models.CharField("Complemento",
                              max_length=50,

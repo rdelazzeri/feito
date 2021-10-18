@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django_tables2 import SingleTableView
 from django_tables2   import RequestConfig
@@ -61,12 +61,32 @@ def prod_list(request):
     return render(request, 'prod/search_prod_form.html', {'filter': filter, 'table': table})
 
 def prod_detail(request, prod_id):
-    instance = Prod.objects.get(id=prod_id)
-    form = ProdDetailForm(request.POST or None, instance=instance)
-    if form.is_valid():
-        form.save()
-        #return redirect('view_lista')
-        #form = ParcForm(form.cleaned_data)
-        
-        return render(request, 'prod/prod_detail.html', {'form': form})
+    if request.method == 'POST':
+        form = ProdDetailForm(request.POST or None)
+        if form.is_valid():
+            form = ProdDetailForm(form.cleaned_data)
+            form.save()
+           
+            
+    else:
+        if prod_id != '0':
+            instance = get_object_or_404(Prod, pk=prod_id)
+            #instance = Prod.objects.get(id=prod_id)
+            form = ProdDetailForm(request.POST or None, instance=instance)
+        else:
+            form = ProdDetailForm()
+
     return render(request, 'prod/prod_detail.html', {'form': form})
+
+
+def prod_new(request):
+    if request.method == 'POST':
+        form = ProdDetailForm(request.POST or None)
+        if form.is_valid():
+            form = ProdDetailForm(form.cleaned_data)
+            form.save()
+            return redirect('prod_detail', prod_id=form.pk)
+    else:
+        form = ProdDetailForm()
+        return render(request, 'prod/prod_detail.html', {'form': form})
+
