@@ -1,6 +1,7 @@
   
 {% extends "base.html" %}
 {% load render_table from django_tables2 %}
+{% load crispy_forms_tags %} 
 
 {% block content %}
 
@@ -8,12 +9,41 @@
     <div class="container">
         <h1>Bem-vindo!</h1>
         <h2><i class="fa fa user"></i>Lista de Componentes</h2>
-        <form method="POST">
+        <li>{{formset.errors}}</li>
+        
+        <form method="POST" action="" class="">
             {% csrf_token %}
-            <!-- {{ formset.as_p }} -->
-            {% render_table formset %}
-            <button type="submit">Salvar</button>
+            <!--
+            {% for form in formset %}
+                <div class="form-row">
+                <div class="form-group col-md-1 mb-0">
+                    {{ form.cod }}
+                </div>
+                <div class="form-group col-md-7 mb-0">
+                    {{ form.desc}}
+                </div>
+                <div class="form-group col-md-1 mb-0">
+                    {{ form.unid}}
+                </div>
+                <div class="form-group col-md-2 mb-0">
+                    {{ form.qtd}}
+                </div>
+                <div class="form-group col-md-1 mb-0">
+                    {{ form.DELETE}}
+                </div>
+            </div>
+            {% endfor %}
+            -->
+
+            {% crispy formset %}  
+    
+            <input class="submit" type="submit" value="Submit data">
+            
         </form>
+
+
+
+
         
     </div>
 </div>

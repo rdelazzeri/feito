@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.forms.formsets import formset_factory
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django_tables2 import SingleTableView
@@ -10,35 +11,56 @@ from .filters import *
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.db import transaction
-from django.forms import modelformset_factory, inlineformset_factory
+from django.forms import modelformset_factory, inlineformset_factory, formset_factory
 
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 
-def prodcomp(request, produto_id):
-    produto = Prod.objects.get(pk=produto_id)
-    #componentesFormSet = modelformset_factory(ProdComp, fields=('codComp', 'qtd',))
-    componentesFormSet = inlineformset_factory(Prod, ProdComp, fk_name='codProd', fields=['codComp', 'qtd',]) 
-    
+def prod_comp2(request, produto_id):
+    print(produto_id)
+    produto = Prod.objects.get(pk=produto_id) 
+    componentesFormSet = inlineformset_factory(Prod, ProdComp, fk_name='codProd', form=ProdCompForm, extra=0) 
+    qr = ProdComp.objects.filter(codProd=produto.id).select_related('codProd')
     if request.method == 'POST':
         #formset = componentesFormSet(request.POST, queryset=ProdComp.objects.filter(codProd=produto.id))
-        formset = componentesFormSet(request.POST, instance=produto)
+        formset = componentesFormSet(request.POST, request.FILES,  instance=produto.id)
         if formset.is_valid():
             formset.save()
-            #instances = formset.save(commit=False)
-            #for instance in instances:
-            #    instance.codProd = Prod.objects.get(pk=produto.id)
-            #    instance.save()
-            
+            print('formset valido')
             return redirect('prod.prodcomp', produto_id = produto.id)
-    
-    
-    #formset = componentesFormSet(queryset=ProdComp.objects.filter(codProd=produto.id))
-    formset = componentesFormSet(instance=produto)
-    print(formset)
-    
-    return render(request, 'prod/componentes.html', {'formset' : formset})
+        else:
+            print(formset.errors)
+    else:
+        formset = componentesFormSet(instance=produto, queryset = qr)
+        return render(request, 'prod/componentes.html', {'formset' : formset})
+
+def prod_comp(request, produto_id):
+    produto = Prod.objects.get(pk=produto_id) 
+    componentes = ProdComp.objects.filter(codProd = produto.id)
+    componentesFormSet = formset_factory(ProdCompFormset, formset=BaseProdCompFormSet, extra=0)
+    comp_data = [{'cod': l.codComp.cod, 'desc': l.codComp.desc, 'unid': l.codComp.unid.unid, 'qtd': l.qtd, 'codProdComp': l.id }for l in componentes] 
+
+    if request.method == 'POST':
+        comp_formset = componentesFormSet(request.POST)
+        if comp_formset.is_valid():
+            for comp in comp_formset:
+                if id:
+                    new_qtd = comp.cleaned_data.get('qtd')
+                    ProdComp_id = comp.cleaned_data.get('codProdComp')
+                    if ProdComp_id:
+                        print('ProdComp id: ' + str(ProdComp_id))
+                        ProdComp_data = ProdComp.objects.get(pk=ProdComp_id)
+                        ProdComp_data.qtd = new_qtd
+                        ProdComp_data.save()
+            return redirect('prod:prod_comp', produto.id)
+        else: 
+            formset = componentesFormSet(initial=comp_data)
+            return render(request, 'prod/componentes.html', {'formset' : formset})
+    else:
+        print('não é post')
+        formset = componentesFormSet(initial=comp_data)
+        return render(request, 'prod/componentes.html', {'formset' : formset})
 
 
 def prod_list(request):
@@ -62,30 +84,38 @@ def prod_list(request):
 
 def prod_detail(request, prod_id):
     if request.method == 'POST':
-        form = ProdDetailForm(request.POST or None)
-        if form.is_valid():
-            form = ProdDetailForm(form.cleaned_data)
-            form.save()
-           
-            
-    else:
-        if prod_id != '0':
-            instance = get_object_or_404(Prod, pk=prod_id)
-            #instance = Prod.objects.get(id=prod_id)
-            form = ProdDetailForm(request.POST or None, instance=instance)
-        else:
+        act = request.POST['act']
+        if act == 'delete':
+            pr = get_object_or_404(Prod, pk=prod_id)
+            pr.delete()
             form = ProdDetailForm()
+            return render(request, 'prod/prod_detail.html', {'form': form})
+        elif act == 'save':
+            pr = get_object_or_404(Prod, pk=prod_id)
+            form = ProdDetailForm(request.POST, pr)
+            if form.is_valid():
+                form = ProdDetailForm(form.cleaned_data)
+                form.save()
+            return render(request, 'prod/prod_detail.html', {'form': form})
+        elif act =='composition':
+            return redirect('prod:prod_comp', prod_id)
+    else:
+        instance = get_object_or_404(Prod, pk=prod_id)
+        form = ProdDetailForm(request.POST or None, instance=instance)
+        return render(request, 'prod/prod_detail.html', {'form': form})
 
-    return render(request, 'prod/prod_detail.html', {'form': form})
+    
 
 
 def prod_new(request):
     if request.method == 'POST':
-        form = ProdDetailForm(request.POST or None)
+        form = ProdDetailForm(request.POST)
         if form.is_valid():
-            form = ProdDetailForm(form.cleaned_data)
-            form.save()
-            return redirect('prod_detail', prod_id=form.pk)
+            pr = form.save(commit=False)
+            pr.save()
+            return redirect('prod_detail', prod_id=pr.pk)
+        else:
+            return render(request, 'prod/prod_detail.html', {'form': form})
     else:
         form = ProdDetailForm()
         return render(request, 'prod/prod_detail.html', {'form': form})

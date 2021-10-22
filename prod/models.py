@@ -210,7 +210,7 @@ class ProdComp(models.Model):
     modificadoPor = models.ForeignKey(User, related_name='prodcomp_modificou', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-            return str(self.codProd.pk) + ' - ' + str(self.codComp.pk)
+            return str(self.codProd.pk) + ' - ' + str(self.codComp.desc)
         
     def get_comp_name(self):
         return self.codComp.desc
