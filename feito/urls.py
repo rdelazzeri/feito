@@ -7,4 +7,6 @@ urlpatterns = [
     path('', include('core.urls')),
     path('prod/', include('prod.urls')),
     path('cyber/', include('cyber_sinc.urls')),
+    path('com/', include('comercial.urls')),
+    path('cad/', include('cadastro.urls')),
 ]

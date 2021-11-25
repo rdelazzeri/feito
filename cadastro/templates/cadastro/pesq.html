@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{# tutorial/templates/people.html #}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
+    </head>
+    <body>
+        <div>
+          <a href="/cad/n">Cadastrar novo parceiro</a>
+        </div>
+        <div>
+          {% crispy form form.helper %}
+        </div>
+
+
+        <div>
+          {% if parc %}
+            {% render_table parc %}
+          {% else %}
+            None
+          {% endif %}
+        </div>
+
+    </body>
+
+</html>
+
+
+{% endblock %}

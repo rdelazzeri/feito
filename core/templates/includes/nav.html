@@ -13,11 +13,24 @@
                 <a class="nav-link" href="{% url 'core:index' %}">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Cadastros</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="/cad/">Lista Pessoas (s)</a>
+                    <a class="dropdown-item" href="/cad/s">Pesquisa Pessoas (s)</a>
+                    <a class="dropdown-item" href="/cad/p">Pesquisa Pessoas (p)</a>
+                    <a class="dropdown-item" href="/cad/n">Nova Pessoa</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/cad/muni">Importação de Municípios</a>
+                    <a class="dropdown-item" href="#">Something else here</a>                
+                </div>
+            </li>
+
+            <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Produtos</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     <a class="dropdown-item" href="/prod/s">Pesquisa Produtos</a>
                     <a class="dropdown-item" href="/prod/n">Novo Produto</a>
-                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-divider"></div>                    
                     <a class="dropdown-item" href="#">Something else here</a>                
                 </div>
             </li>

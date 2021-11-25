@@ -47,11 +47,15 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_tables2',
     'django_filters',
+    #'localflavor',
+    'django_cpf_cnpj',
 
     #My apps
     'core',
     'prod',
     'estoque',
+    'comercial',
+    'cadastro',
     'cyber_sinc',
 
 ]
@@ -135,6 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

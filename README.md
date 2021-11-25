@@ -158,3 +158,5 @@ Ajustar o admim
 ## Criando o template base
 
 
+#Instalando Requirements.txt
+    pip install -r requirements.txt

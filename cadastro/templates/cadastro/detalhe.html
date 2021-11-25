@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<table border="5" cellspacing="10">
+  <tr>
+    <th>CNPJ</th>
+    <th>Nome</th>
+    <th>Rua</th>
+  </tr>
+
+  <tr>
+    <td><a href="d/{{ parc.cnpj }}">{{ parc.cnpj }}</a></td>
+    <td> {{ parc.nome }}</td>
+    <td> {{ parc.pk }}</td>
+    <td> {{ parc.logradouro}}</td>
+  </tr>
+
+</table>
+{% endblock %}
