@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="form-group col-md-6 mb-0">
+    <h1>Pedido de venda</h1>
+    <form method="POST" >
+        {% csrf_token %}
+        {% crispy form %}
+    </form>
+    </div>
+{% endblock %}

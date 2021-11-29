@@ -5,11 +5,11 @@ from . import views as v
 app_name = 'comercial'
 
 urlpatterns = [
-    #path('', v.order_list, name = 'order_list'),
+    path('', v.pedidos_list, name = 'pedidos_list'),
     #path('s', v.prod_list, name = 'prod_list'),
-    #path('n', v.prod_new, name = 'prod_new'),
+    path('n', v.pedidos_new, name = 'pedidos_new'),
     #path('del', v.prod_delete, name = 'prod_delete'),
-    #path('p<prod_id>', v.prod_detail, name = 'prod_detail'),
+    path('p<ped_id>', v.pedido_detail, name = 'pedido_detail'),
     #path('comp/<produto_id>', v.prod_comp, name='prod_comp')
     #path('prodcomp', v.Prod_Create, name = 'prod_create'),
     #path('prodcompup', v.Prod_Update, name = 'prod_update'),

@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'django_filters',
     #'localflavor',
     'django_cpf_cnpj',
+    #'django_extensions',
+    'bootstrap_modal_forms',
 
     #My apps
     'core',
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
     'estoque',
     'comercial',
     'cadastro',
+    'fiscal',
     'cyber_sinc',
 
 ]

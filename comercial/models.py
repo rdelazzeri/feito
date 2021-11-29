@@ -4,9 +4,10 @@ from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from datetime import datetime    
 from prod.models import Prod
+from cadastro.models import Parceiro
 
 class Vencimento(models.Model):
-    vencimentos = models.CharField("Vencimentos", max_length=30)
+    vencimentos = models.CharField("Vencimentos", max_length=30, default='0')
 
     def __str__(self):
         return self.vencimentos
@@ -26,22 +27,46 @@ TIPO_SITUACAO = (
     ('2','ENCERRADO'),
 )
 
+CSOSN_OPCOES = (
+    ('101','TRIBUTADO'),
+    ('102','...'),
+)
+
+ORIGEM_OPCOES = (
+    ('0','NACIONAL'),
+    ('1','ESTRANGEIRA'),
+)
+
+
+class Operacao(models.Model):
+    desc = models.CharField("Nome", max_length=30, null=True, blank=True)
+    desc_NF = models.CharField("Desc. na NF", max_length=30, null=True, blank=True)
+    CFOP = models.CharField("Nome", max_length=5, null=True, blank=True)
+    CSOSN = models.CharField("CSOSN", max_length=5, choices=CSOSN_OPCOES, null=True, blank=True)
+    Origem_mercadoria = models.CharField("CSOSN", max_length=5, choices=ORIGEM_OPCOES, null=True, blank=True)
+    mensagem_NF = models.TextField(blank=True, null=True)
+    obs = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.desc
+
+
 class Pedido(models.Model):
-    num = models.CharField("Número", max_length=15)
-    #operacao = models.ForeignKey(Vencimento, on_delete = CASCADE)
-    data_cadastro = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    num = models.CharField("Número", max_length=15, default='0')
+    operacao = models.ForeignKey(Operacao, on_delete = PROTECT, null=True, blank=True)
+    data_cadastro = models.DateTimeField(blank=True, null=True)
     data_previsao = models.DateTimeField(blank=True, null=True)
-    #cliente = models.ForeignKey(Grupo, on_delete = CASCADE)
-    #vencimentos = models.ForeignKey(Vencimento, on_delete = CASCADE)
-    #transportadora = models.ForeignKey(Grupo, on_delete = CASCADE)
-    tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, blank=True)
+    cliente = models.ForeignKey(Parceiro, related_name='pedidos', on_delete = PROTECT, null=True, blank=True)
+    vencimentos = models.ForeignKey(Vencimento, on_delete = PROTECT, related_name='pedidos', null=True, blank=True)
+    transportadora = models.ForeignKey(Parceiro, related_name='pedidos_tranportados', on_delete = PROTECT, null=True, blank=True)
+    tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, default='1')
     obs = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.num
 
 class Pedido_item(models.Model):
-    produto = models.ForeignKey(Prod, on_delete=PROTECT)
+    produto = models.ForeignKey(Prod, on_delete=PROTECT, null=True, blank=True)
     qtd = models.DecimalField(
         max_digits=15,
         decimal_places=3,

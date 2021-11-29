@@ -30,19 +30,19 @@ class Municipio(models.Model):
 
 
 class Parceiro(models.Model):
-    tipo = models.ManyToManyField(Tipo_parceiro, blank=False)
+    tipo = models.ManyToManyField(Tipo_parceiro,  blank=True)
     pessoa_choices = (('F', 'Física'), ('J', 'Jurídica'))
     pessoa = models.CharField(max_length=2, choices=pessoa_choices, default='2',)
-    nome = models.CharField(max_length=60, verbose_name='Nome                                      ')
+    nome = models.CharField(max_length=60, verbose_name='Nome',  blank=True, null=True)
     apelido = models.CharField(max_length=20, blank=True, null=True)
     data_cadastro = models.DateField(blank=True, null=True)
     #docs pj
-    cnpj =CNPJField(masked=True)
+    cnpj =CNPJField(masked=True,  blank=True, null=True)
     #cnpj2 = BRCNPJField(null=True)
-    insc_est = models.CharField(max_length=14, blank=True)
-    insc_mun = models.CharField(max_length=14, blank=True)
+    insc_est = models.CharField(max_length=14,  blank=True, null=True)
+    insc_mun = models.CharField(max_length=14,  blank=True, null=True)
     #docs PF
-    cpf = CPFField(masked=True)
+    cpf = CPFField(masked=True,  blank=True, null=True)
     #cpf2 = BRCPFField(null=True)
     #endereco
     logradouro = models.CharField(max_length=60,blank=True, null=True)
@@ -50,7 +50,9 @@ class Parceiro(models.Model):
     complemento = models.CharField(max_length=30, blank=True, null=True)
     bairro = models.CharField(max_length=30, blank=True, null=True)
     cep = models.CharField(max_length=8, blank=True, null=True)
-    estado = models.ForeignKey(Estado, blank=True, null=True, on_delete = models.PROTECT)
+    #estado = models.ForeignKey(Estado, blank=True, null=True, on_delete = models.PROTECT)
+    estado = models.CharField(max_length=2, blank=True, null=True)
+    cidade = models.CharField(max_length=60, null=True, blank=True)
     municipio = models.ForeignKey(Municipio, blank=True, null=True, on_delete = models.PROTECT)
     #Contato
     fone1 = models.CharField(max_length=10, blank=True, null=True)
