@@ -47,10 +47,11 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_tables2',
     'django_filters',
-    #'localflavor',
+    'localflavor',
     'django_cpf_cnpj',
-    #'django_extensions',
+    'django_extensions',
     'bootstrap_modal_forms',
+    'widget_tweaks',
 
     #My apps
     'core',
@@ -60,6 +61,8 @@ INSTALLED_APPS = [
     'cadastro',
     'fiscal',
     'cyber_sinc',
+    #app de teste de popup
+    'modalform',
 
 ]
 
@@ -142,7 +145,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+#TATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Default primary key field type

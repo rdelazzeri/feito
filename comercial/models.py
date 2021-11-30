@@ -52,7 +52,7 @@ class Operacao(models.Model):
 
 
 class Pedido(models.Model):
-    num = models.CharField("Número", max_length=15, default='0')
+    num = models.CharField("Número", max_length=15, default='0', unique=True)
     operacao = models.ForeignKey(Operacao, on_delete = PROTECT, null=True, blank=True)
     data_cadastro = models.DateTimeField(blank=True, null=True)
     data_previsao = models.DateTimeField(blank=True, null=True)

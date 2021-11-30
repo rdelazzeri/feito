@@ -10,6 +10,24 @@ from crispy_forms.layout import Layout, Submit, Row, Column
 #from django.forms.formsets import BaseFormSet
 #from decimal import Decimal
 
+from bootstrap_modal_forms.forms import BSModalModelForm, BSModalForm
+from bootstrap_modal_forms.mixins import PopRequestMixin, CreateUpdateAjaxMixin
+
+
+class PedidoModelForm(BSModalModelForm):
+    class Meta:
+        model = Pedido
+        fields = '__all__'
+
+
+class PedidoFilterForm(BSModalForm):
+    cliente = forms.CharField()
+    tipo_frete = forms.CharField()
+
+    class Meta:
+        fields = ['cliente', 'tipo_frete']
+
+
 class PedidoDetailForm(forms.ModelForm):
     class Meta:
         model = Pedido

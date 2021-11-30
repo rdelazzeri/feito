@@ -1,64 +1,89 @@
-{% extends "base.html" %}
-{% load render_table from django_tables2 %}
-
+{% extends 'base.html' %}
 
 {% block content %}
 
-{% include "comercial/_modal.html" %}
-<div class="container mt-3">
-  <div class="row">
-    <div class="col">
-      <h4>
-        <strong>Lista de Pedidos</strong>
-      </h4>
-      
-      <div class="row">
-        <div class="col-12 mb-3">
-          <button id="create-pedido-sync" class="btn btn-primary" type="button" name="button">
-            <span class="fa fa-plus mr-2"></span>Novo pedido (Sinc)
-          </button>
-          <button id="create-pedido-async" class="btn btn-primary" type="button" name="button">
-            <span class="fa fa-plus mr-2"></span>Novo pedido Asynchronous
-          </button>
-          <button id="filter-pedido" class="filter-pedido btn btn-primary" type="button" name="button" data-form-url="{% url 'comercial:pedido_filter' %}">
-            <span class="fa fa-filter mr-2"></span>Filtrar pedidos
-          </button>
+  {% include "_modal.html" %}
+
+  <div class="container mt-3">
+    <div class="row">
+      <div class="col">
+        <p class="text-primary">A jQuery plugin for creating AJAX driven Django forms in Bootstrap modal.</p>
+        <h4>
+          <strong>1. Signup form</strong>
+        </h4>
+        <p>Sign up via Bootstrap modal.</p>
+        <div class="row">
+          <div class="col-12 mb-3">
+            <button id="signup-btn" class="btn btn-primary" type="button" name="button">Sign up</button>
+          </div>
         </div>
-        <div class="col-12 mb-3">
-        {% if 'type' in request.GET %}
-          <p class="filtered-books">Filtered books.</p>
-        {% endif %}
-        {% include "comercial/_pedidos_table.html" %}
+        <h4>
+          <strong>2. Login form</strong>
+        </h4>
+        <p>Log in via Bootstrap modal. Sign up first.</p>
+        <div class="row">
+
+
+        </div>
+        <h4>
+          <strong>3. CRUD actions</strong>
+        </h4>
+        <p>Create, Read, Update and Delete books in Bootstrap modal.</p>
+
+        <div class="row">
+          <div class="col-12 mb-3">
+            <button id="create-book-sync" class="btn btn-primary" type="button" name="button">
+              <span class="fa fa-plus mr-2"></span>Create book - Synchronous
+            </button>
+            <button id="create-book-async" class="btn btn-primary" type="button" name="button">
+              <span class="fa fa-plus mr-2"></span>Create book - Asynchronous
+            </button>
+            <button id="filter-book" class="filter-book btn btn-primary" type="button" name="button" data-form-url="{% url 'modalform:filter_book' %}">
+              <span class="fa fa-filter mr-2"></span>Filter books
+            </button>
+          </div>
+          <div class="col-12 mb-3">
+          {% if 'type' in request.GET %}
+            <p class="filtered-books">Filtered books.</p>
+          {% endif %}
+          {% include "_books_table.html" %}
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-
-
 
 {% endblock content %}
 
 {% block extrascripts %}
   <script type="text/javascript">
       $(function () {
-          // Create pedido synchronous
+          // Login
+          $("#login-btn").modalForm({
+            formURL: "{% url 'modalform:login' %}"
+          });
+
+          //  Signup
+          $("#signup-btn").modalForm({
+            formURL: "{% url 'modalform:signup' %}"
+          });
+
+          // Create book synchronous
           function createBookSyncModalForm() {
-            $("#create-pedido-sync").modalForm({
-                formURL: "{% url 'comercial:pedido_create' %}",
+            $("#create-book-sync").modalForm({
+                formURL: "{% url 'modalform:create_book' %}",
                 modalID: "#create-modal"
             });
           }
           createBookSyncModalForm();
 
-          // Create pedido asynchronous button
+          // Create book asynchronous button
           // message
           var asyncSuccessMessageCreate = [
             "<div ",
             "style='position:fixed;top:0;z-index:10000;width:100%;border-radius:0;' ",
             "class='alert alert-icon alert-success alert-dismissible fade show mb-0' role='alert'>",
-            "Success: pedido was created.",
+            "Success: Book was created.",
             "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>",
             "<span aria-hidden='true'>&times;</span>",
             "</button>",
@@ -70,15 +95,15 @@
 
           // modal form
           function createBookAsyncModalForm() {
-            $("#create-pedido-async").modalForm({
-                formURL: "{% url 'comercial:pedido_create' %}",
+            $("#create-book-async").modalForm({
+                formURL: "{% url 'modalform:create_book' %}",
                 modalID: "#create-modal",
                 asyncUpdate: true,
                 asyncSettings: {
                   closeOnSubmit: true,
                   successMessage: asyncSuccessMessageCreate,
-                  dataUrl: "pedidos",
-                  dataElementId: "#pedidos-table",
+                  dataUrl: "books/",
+                  dataElementId: "#books-table",
                   dataKey: "table",
                   addModalFormFunction: reinstantiateModalForms
                 }
@@ -86,13 +111,13 @@
           }
           createBookAsyncModalForm();
 
-          // Update pedido asynchronous button
+          // Update book asynchronous button
           // message
           var asyncSuccessMessageUpdate = [
             "<div ",
             "style='position:fixed;top:0;z-index:10000;width:100%;border-radius:0;' ",
             "class='alert alert-icon alert-success alert-dismissible fade show mb-0' role='alert'>",
-            "Success: pedido was updated.",
+            "Success: Book was updated.",
             "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>",
             "<span aria-hidden='true'>&times;</span>",
             "</button>",
@@ -104,15 +129,15 @@
 
           // modal form
           function updateBookModalForm() {
-            $(".update-pedido").each(function () {
+            $(".update-book").each(function () {
               $(this).modalForm({
                 formURL: $(this).data("form-url"),
                 asyncUpdate: true,
                 asyncSettings: {
                   closeOnSubmit: false,
                   successMessage: asyncSuccessMessageUpdate,
-                  dataUrl: "pedidos",
-                  dataElementId: "#pedidos-table",
+                  dataUrl: "books/",
+                  dataElementId: "#books-table",
                   dataKey: "table",
                   addModalFormFunction: reinstantiateModalForms
                 }
@@ -121,17 +146,17 @@
           }
           updateBookModalForm();
 
-          // Delete pedido buttons - formURL is retrieved from the data of the element
+          // Delete book buttons - formURL is retrieved from the data of the element
           function deleteBookModalForm() {
-            $(".delete-pedido").each(function () {
+            $(".delete-book").each(function () {
                 $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
             });
           }
           deleteBookModalForm();
 
-          // Read pedido buttons
+          // Read book buttons
           function readBookModalForm() {
-            $(".read-pedido").each(function () {
+            $(".read-book").each(function () {
                 $(this).modalForm({formURL: $(this).data("form-url")});
             });
           }
@@ -145,7 +170,7 @@
           }
 
           // Filter books button
-          $("#filter-pedido").each(function () {
+          $("#filter-book").each(function () {
               $(this).modalForm({formURL: $(this).data("form-url")});
           });
 

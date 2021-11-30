@@ -5,10 +5,12 @@
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" href="https://www.djangoproject.com/favicon.ico">
     <title>Feito!</title>
 
+    
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <!-- Font-awesome -->
@@ -16,22 +18,41 @@
 
     <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+      <!-- Custom CSS -->
+      <style media="screen">
+        .invalid {
+          color: #dc3545;
+          font-size: 80%;
+        }
+        body {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+        }
+        .footer {
+          margin: auto 0 0;
+          height: 56px;
+        }
+      </style>
 
     {% block css %}{% endblock css %}
 
   </head>
   <body>
+    
     {% if user.is_authenticated %}
       {% include "includes/nav.html" %}
     {% endif %}
 
-        <div class="container">
-      {% block content %}{% endblock content %}
-    </div>
+
+    {% block content %}{% endblock content %}
+  
 
     <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+    {% block scripts %}
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -39,6 +60,10 @@
     <!-- Select2 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
+    <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+    {% endblock scripts %}
+
     {% block js %}{% endblock js %}
+    {% block extrascripts %}{% endblock extrascripts %}
   </body>
 </html>

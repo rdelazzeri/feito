@@ -1,0 +1,42 @@
+<table id="pedidos-table" class="table">
+    <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Número</th>
+      <th class="text-center" scope="col">Cliente</th>
+      <th class="text-center" scope="col">Data Cad.</th>
+      <th class="text-center" scope="col">Previsao</th>
+      <th class="text-center" scope="col">Frete</th>
+      <th class="text-center" scope="col">Price (€)</th>
+      <th class="text-center" scope="col">Read / Update / Delete</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for ped in pedidos %}
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center">{{ ped.num }}</td>
+        <td class="text-center">{{ ped.cliente }}</td>
+        <td class="text-center">{{ ped.data_cadastro }}</td>
+        <td class="text-center">{{ ped.data_previsao }}</td>
+        <td class="text-center">{{ ped.tipo_frete }}</td>
+        <td class="text-center">{{ ped.obs }}</td>
+        <td class="text-center">
+          <!-- Read book buttons -->
+          <button type="button" class="read-pedido btn btn-sm btn-primary" data-form-url="{% url 'comercial:pedido_read' ped.pk %}">
+            <span class="fa fa-eye"></span>
+          </button>
+          <!-- Update book buttons -->
+          <button type="button" class="update-pedido btn btn-sm btn-primary" data-form-url="{% url 'comercial:pedido_update' ped.pk %}">
+            <span class="fa fa-pencil"></span>
+          </button>
+          <!-- Delete book buttons -->
+          <button type="button" class="delete-pedido btn btn-sm btn-danger" data-form-url="{% url 'comercial:pedido_delete' ped.pk %}">
+            <span class="fa fa-trash"></span>
+          </button>
+        </td>
+      </tr>
+    {% endfor %}
+  
+    </tbody>
+  </table>
