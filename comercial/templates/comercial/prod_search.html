@@ -1,0 +1,29 @@
+
+{% block content %}
+    <div class="jumbotron">
+
+        <form hx-post="/contact">
+            {% csrf_token %}
+            <div hx-target="#tabela" hx-swap="outerHTML">
+              <label>Pesquisar</label>
+              <input name="pesquisa" hx-post="" >
+            </div>
+            <button class="btn btn-default">Submit</button>
+        </form>
+
+        <input class="form-control" type="text" 
+        name="search" placeholder="Begin Typing To Search Users..." 
+        hx-post="com/search_prod/" 
+        hx-trigger="keyup changed delay:200ms" 
+        hx-target="#tabela">
+
+
+
+        <div class="form-row" id="tabela">
+            {{ tabela }}
+        </div>     
+    </div>
+{% endblock %}
+
+{% block extrascripts %}
+{% endblock extrascripts %}

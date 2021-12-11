@@ -1,0 +1,26 @@
+<table id="prod-table" class="table">
+    <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Código</th>
+      <th class="text-center" scope="col">Descrição</th>
+      <th class="text-center" scope="col">Selecionar</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for prod in prods %}
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center">{{ prod.cod }}</td>
+        <td class="text-center">{{ prod.descriacao }}</td>
+        <td class="text-center">
+          <!-- Read book buttons -->
+          <button type="button" class="read-prod btn btn-sm btn-primary" data-form-url="{% url 'prod:prod_detail' prod.pk %}">
+            <span class="fa fa-eye"></span>
+          </button>
+        </td>
+      </tr>
+    {% endfor %}
+  
+    </tbody>
+  </table>

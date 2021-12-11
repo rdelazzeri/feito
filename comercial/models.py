@@ -1,10 +1,12 @@
 from django.db import models
 from django.db.models.deletion import CASCADE, PROTECT
+from django.db.models import F
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from datetime import datetime    
 from prod.models import Prod
 from cadastro.models import Parceiro
+
 
 class Vencimento(models.Model):
     vencimentos = models.CharField("Vencimentos", max_length=30, default='0')
@@ -50,10 +52,32 @@ class Operacao(models.Model):
     def __str__(self):
         return self.desc
 
+STATUS_OPCOES = (
+    (0,'ORÇAMENTO'),
+    (10,'PEDIDO NOVO'),
+    (20,'PEDIDO PROGRAMADO'),
+    (30,'PEDIDO PRONTO PARA FATURAMENTO'),
+    (40,'PEDIDO FATURADO AGUARDANDO EXPEDIÇÃO'),
+    (50,'PEDIDO ENTREGUE E ENCERRADO'),
+)
+
+class PedidoManager(models.Manager):
+    """QuerySet manager for Invoice class to add non-database fields.
+
+    A @property in the model cannot be used because QuerySets (eg. return
+    value from .all()) are directly tied to the database Fields -
+    this does not include @property attributes."""
+
+    def get_queryset(self):
+        """Overrides the models.Manager method"""
+        qs = super(PedidoManager, self).get_queryset().annotate(saldo = F('valor_total_pedido') - F('valor_total_entregue'))
+        return qs
+
 
 class Pedido(models.Model):
     num = models.CharField("Número", max_length=15, default='0', unique=True)
     operacao = models.ForeignKey(Operacao, on_delete = PROTECT, null=True, blank=True)
+    status = models.PositiveIntegerField(choices=STATUS_OPCOES, default=0)
     data_cadastro = models.DateTimeField(blank=True, null=True)
     data_previsao = models.DateTimeField(blank=True, null=True)
     cliente = models.ForeignKey(Parceiro, related_name='pedidos', on_delete = PROTECT, null=True, blank=True)
@@ -61,11 +85,24 @@ class Pedido(models.Model):
     transportadora = models.ForeignKey(Parceiro, related_name='pedidos_tranportados', on_delete = PROTECT, null=True, blank=True)
     tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, default='1')
     obs = models.TextField(blank=True, null=True)
+    valor_total_pedido = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    valor_total_entregue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    valor_total_saldo = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    objects = PedidoManager()
+
+    @property
+    def valor_saldo(self):
+        return self.valor_total_pedido - self.valor_total_entregue
+
 
     def __str__(self):
         return self.num
+        
+
 
 class Pedido_item(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=CASCADE)
     produto = models.ForeignKey(Prod, on_delete=PROTECT, null=True, blank=True)
     qtd = models.DecimalField(
         max_digits=15,
@@ -85,6 +122,25 @@ class Pedido_item(models.Model):
         default=0,
         verbose_name="Preço Total.",
         )
+    qtd_entregue = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        default=0,
+        verbose_name="Qtd Entregue",
+        )
+    val_entregue = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        default=0,
+        verbose_name="Valor faturado",
+        )
+    saldo = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        default=0,
+        verbose_name="Saldo",
+        )
+
     aliq_ICMS = models.DecimalField(
         max_digits=15,
         decimal_places=3,
@@ -111,8 +167,13 @@ class Pedido_item(models.Model):
         )
     obs = models.CharField(max_length=50, blank=True, null=True)
 
+    @property
+    def pr_tot(self):
+        return self.qtd * self.pr_unit
+
+
     def __str__(self):
-        return self.produto
+        return self.produto.desc    
 
 
 

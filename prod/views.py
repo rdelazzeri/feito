@@ -54,7 +54,7 @@ def prod_comp(request, produto_id):
                         ProdComp_data.qtd = new_qtd
                         ProdComp_data.save()
             return redirect('prod:prod_comp', produto.id)
-        else: 
+        else:
             formset = componentesFormSet(initial=comp_data)
             return render(request, 'prod/componentes.html', {'formset' : formset})
     else:
@@ -72,15 +72,33 @@ def prod_list(request):
         if 'desc'in request.GET:
             dd = request.GET['desc'].split(' & ')
             for d in dd:
-                print(d)
                 qs = qs.filter(desc__icontains = d)
     else:
         filter = SearchProdForm()
 
-
     table = SearchProdTable(qs)
     table.paginate(page=request.GET.get("page", 1), per_page=25)
     return render(request, 'prod/search_prod_form.html', {'filter': filter, 'table': table})
+
+
+def prod_search(request):
+    qs = Prod.objects.only('cod', 'desc')
+    if request.method == 'GET':
+        filter = SearchProdForm(request.POST)
+        if 'cod' in request.POST:
+                    qs = qs.filter(cod__istartswith = request.POST['cod'])
+        if 'desc'in request.POST:
+            dd = request.POST['desc'].split(' & ')
+            for d in dd:
+                qs = qs.filter(desc__icontains = d)
+    else:
+        filter = SearchProdForm()
+
+    table = SearchProdTable(qs)
+    table.paginate(page=request.POST.get("page", 1), per_page=10)
+    return render(request, 'prod/prod_search.html', {'filter': filter, 'table': table})
+
+
 
 def prod_detail(request, prod_id):
     if request.method == 'POST':
