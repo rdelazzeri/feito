@@ -1,17 +1,30 @@
 from django.db import models
-from django.db.models.deletion import PROTECT
+from django.db.models.deletion import CASCADE, PROTECT
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
 # Create your models here.
 
+class Pre_nota_last_num(models.Model):
+    num = models.IntegerField(default=0)
+
+AMBIENTE_OPCOES = (
+    ('1','PRODUCAO'),
+    ('2','HOMOLOGACÃO'),
+)
+
+class NF_config(models.Model):
+    last_num = models.IntegerField(default=0)
+    ambiente = models.CharField(max_length=1, choices = AMBIENTE_OPCOES, default=1, null=True, blank=True)
+    url_notificacao = models.CharField(max_length=80, null=True, blank=True)
+    aliq_credito_simples = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
 class Pre_nota(models.Model):
-    pre_nota_id = models.CharField(max_length=15, null=True, blank=True)
+    num_nf = models.PositiveIntegerField(default=0)
     operacao = models.CharField(max_length=1, null=True, blank=True)
     natureza_operacao = models.CharField(max_length=60, null=True, blank=True)
     modelo = models.CharField(max_length=1, null=True, blank=True)
     finalidade = models.CharField(max_length=1, null=True, blank=True)
-    ambiente = models.CharField(max_length=1, null=True, blank=True)
+    ambiente = models.CharField(max_length=1, choices = AMBIENTE_OPCOES, default=1, null=True, blank=True)
     url_notificacao = models.CharField(max_length=80, null=True, blank=True)
 
 
@@ -39,7 +52,7 @@ class Pre_nota_cliente(models.Model):
 
 
 class Pre_nota_produtos(models.Model):
-    pre_nota = models.ForeignKey(Pre_nota, on_delete=PROTECT, related_name='produtos')
+    pre_nota = models.ForeignKey(Pre_nota, on_delete=CASCADE, related_name='produtos')
     produto_id = models.IntegerField(null=True, blank=True)
     item = models.IntegerField(null=True, blank=True)
     nome = models.CharField(max_length=120, null=True, blank=True)
@@ -70,10 +83,10 @@ class Pre_nota_produtos(models.Model):
     ex_ipi = models.CharField(max_length=3, null=True, blank=True)
 
 class Pre_nota_impostos(models.Model):
-    Pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=PROTECT, related_name='impostos')
+    Pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=CASCADE, related_name='impostos')
 
 class Pre_nota_ICMS(models.Model):
-    pre_nota_impostos = OneToOneField(Pre_nota_impostos, on_delete=PROTECT, related_name='icms')
+    pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=CASCADE, related_name='icms')
     #ICMS para Simples Nacional
     aliquota = models.CharField(max_length=4, null=True, blank=True)
     codigo_cfop = models.CharField(max_length=4, null=True, blank=True)
@@ -85,23 +98,23 @@ class Pre_nota_ICMS(models.Model):
     aliquota_credito = models.CharField(max_length=4, null=True, blank=True)
 
 class Pre_nota_IPI(models.Model):
-    pre_nota_impostos = OneToOneField(Pre_nota_impostos, on_delete=PROTECT, related_name='ipi')
+    pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=CASCADE, related_name='ipi')
     situacao_tributaria = models.CharField(max_length=3, null=True, blank=True)
     codigo_enquadramento = models.CharField(max_length=3, null=True, blank=True)
     aliquota = models.CharField(max_length=4, null=True, blank=True)
 
 class Pre_nota_PIS(models.Model):
-    pre_nota_impostos = OneToOneField(Pre_nota_impostos, on_delete=PROTECT, related_name='pis')
+    pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=CASCADE, related_name='pis')
     situacao_tributaria = models.CharField(max_length=3, null=True, blank=True)
     aliquota = models.CharField(max_length=4, null=True, blank=True)
 
 class Pre_nota_COFINS(models.Model):
-    pre_nota_impostos = OneToOneField(Pre_nota_impostos, on_delete=PROTECT, related_name='cofins')
+    pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=CASCADE, related_name='cofins')
     situacao_tributaria = models.CharField(max_length=3, null=True, blank=True)
     aliquota = models.CharField(max_length=4, null=True, blank=True)
 
 class Pre_nota_pedido(models.Model):
-    pre_nota = models.OneToOneField(Pre_nota, on_delete=PROTECT, related_name='pedido')
+    pre_nota = models.OneToOneField(Pre_nota, on_delete=CASCADE, related_name='pedido')
     presenca = models.CharField(max_length=1, null=True, blank=True)
     intermediador = models.CharField(max_length=1, null=True, blank=True)
     cnpj_intermediador = models.CharField(max_length=14, null=True, blank=True)
@@ -126,7 +139,7 @@ class Pre_nota_pedido(models.Model):
     autorizacao = models.CharField(max_length=20, null=True, blank=True)
 
 class Pre_nota_transporte(models.Model):
-    pre_nota = models.OneToOneField(Pre_nota, on_delete=PROTECT, related_name='transporte')
+    pre_nota = models.OneToOneField(Pre_nota, on_delete=CASCADE, related_name='transporte')
     volume = models.CharField(max_length=15, null=True, blank=True)
     peso_bruto = models.CharField(max_length=15, null=True, blank=True)
     peso_liquido = models.CharField(max_length=15, null=True, blank=True)
@@ -149,7 +162,7 @@ class Pre_nota_transporte(models.Model):
     seguro = models.CharField(max_length=14, blank=True, null=True)
 
 class Pre_nota_entrega(models.Model):
-    pre_nota_transporte = OneToOneField(Pre_nota_transporte, on_delete=PROTECT, related_name='entrega')
+    pre_nota = OneToOneField(Pre_nota, on_delete=CASCADE, related_name='entrega')
     cpf = models.CharField(max_length=11, null=True, blank=True)
     nome_completo = models.CharField(max_length=60, null=True, blank=True)
     cnpj = models.CharField(max_length=14, null=True, blank=True)
@@ -166,14 +179,14 @@ class Pre_nota_entrega(models.Model):
     email = models.CharField(max_length=60, null=True, blank=True)
 
 class Pre_nota_fatura(models.Model):
-    pre_nota = OneToOneField(Pre_nota, on_delete=PROTECT, related_name='fatura')
+    pre_nota = OneToOneField(Pre_nota, on_delete=CASCADE, related_name='fatura')
     numero = models.CharField(max_length=14, blank=True, null=True)
     valor = models.CharField(max_length=14, blank=True, null=True)
     desconto = models.CharField(max_length=14, blank=True, null=True)
     valor_liquido = models.CharField(max_length=14, blank=True, null=True)
  
 class Pre_nota_parcelas(models.Model):
-    pre_nota = ForeignKey(Pre_nota, on_delete=PROTECT, related_name='parcelas')
+    pre_nota = ForeignKey(Pre_nota, on_delete=CASCADE, related_name='parcelas')
     vencimento = models.CharField(max_length=10, blank=True, null=True)
     valor = models.CharField(max_length=14, blank=True, null=True)
 

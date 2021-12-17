@@ -5,17 +5,18 @@
 {% include "comercial/_modal.html" %}
 
 <div class="jumbotron">
-    <form method="post">
+    <form method="post" id="form">
         {% csrf_token %}
         <div class="form-row">
             <div class="form-group col-md-6 mb-0">
-                <h1>Cadastro de Produtos</h1>
+                <h1>Pedido de Vendas</h1>
             </div>
             <div class="form-group col-md-6 mb-0">
                 <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
                 <a href="/com/new"> <button type="button" class="btn btn-primary">Novo</button></a>
                 <a href="/com/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="submit" name="act" value="delete" class="btn btn-primary">Deletar</button>
+                <button type="button" name="nfe" id="entrega-add" class="btn btn-primary">Gerar Entrega</button>
 
             </div>
         </div>
@@ -48,7 +49,10 @@
             <div class="form-group col-md-2 mb-0">
                 {{ form.tipo_frete|as_crispy_field }}
             </div>
-            <div class="form-group col-md-6 mb-0">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
                 {{ form.transportadora|as_crispy_field }}
             </div>
         </div>
@@ -93,7 +97,7 @@
 </div>
 
 
-{% include "comercial/prod_search2.html" %}
+{% include "comercial/prod_search.html" %}
 
 {% endblock content %}
 
@@ -126,11 +130,11 @@ $(function () {
         event.preventDefault();
         var currentRow = $(this).closest("tr"); 
         var prod = currentRow.find("td:eq(0)").text();
-        var pedido = $("#pedido-id").text();
-        $.ajax({
+        var pedido_id = $("#pedido-id").text();
+        $.ajax({    
             type: "GET",
-            url: "{% url 'comercial:pedidos_prod_selected' %}",
-            data: {"produto": prod, "pedido": pedido},
+            url: "{% url 'comercial:pedido_item_add' %}",
+            data: {"produto": prod, "pedido": pedido_id},
             success: function(result){
                 location.reload();
                 $("#pesquisa-prod").modal('toggle'); 
@@ -156,7 +160,45 @@ $(function () {
             }
         });
     })  
+    $("#entrega-add").click(function(event){
+        var pedido_id = $("#pedido-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pedido_entrega_add' %}",
+            data: {"pedido_id": pedido_id},
+            success: function(result){
+                entrega=JSON.stringify(result);
+                alert("Entrega criada com sucesso. Num: " + entrega)
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    })
+
+    $("#testaJson").click(function(event){
+        var pedido = $("#pedido-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pedido_testaJson' %}",
+            data: {"pedido": pedido},
+            success: function(result){
+                alert("Pré nota criada com sucesso")
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    })
 })
+
+
+
+
+
+
 
 </script>
 

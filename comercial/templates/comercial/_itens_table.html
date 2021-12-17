@@ -11,7 +11,8 @@
       <th class="text-center" scope="col">Valor Total</th>
       <th class="text-center" scope="col">Qtd Entregue</th>
       <th class="text-center" scope="col">Valor Faturado</th>
-      <th class="text-center" scope="col">Saldo</th>
+      <th class="text-center" scope="col">Saldo Qtd.</th>
+      <th class="text-center" scope="col">Saldo R$</th>
       <th class="text-center" scope="col">Read / Update / Delete</th>
     </tr>
     </thead>
@@ -27,7 +28,8 @@
         <td class="text-center">{{ ped_it.pr_tot }}</td>
         <td class="text-center">{{ ped_it.qtd_entregue }}</td>
         <td class="text-center">{{ ped_it.val_entregue }}</td>
-        <td class="text-center">{{ ped_it.saldo }}</td>
+        <td class="text-center">{{ ped_it.qtd_saldo }}</td>
+        <td class="text-center">{{ ped_it.valor_saldo }}</td>
         <td class="text-center">
           <!-- Update book buttons -->
           <button type="submit" class="btn btn-sm btn-primary" >

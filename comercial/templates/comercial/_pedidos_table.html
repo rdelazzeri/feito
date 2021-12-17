@@ -9,7 +9,7 @@
       <th class="text-center" scope="col">Previsao</th>
       <th class="text-center" scope="col">Valor Total</th>
       <th class="text-center" scope="col">Valor Entregue</th>
-      <th class="text-center" scope="col">Saldo</th>
+      <th class="text-center" scope="col">Saldo.</th>
       <th class="text-center" scope="col">Read / Update / Delete</th>
     </tr>
     </thead>
@@ -24,7 +24,7 @@
         <td class="text-center">{{ ped.data_previsao|date:"SHORT_DATE_FORMAT"}}</td>
         <td class="text-center">{{ ped.valor_total_pedido }}</td>
         <td class="text-center">{{ ped.valor_total_entregue }}</td>
-        <td class="text-center">{{ ped.saldo }}</td>
+        <td class="text-center">{{ ped.valor_total_saldo }}</td>
         <td class="text-center">
           <!-- Read book buttons -->
           <button type="button" class="read-pedido btn btn-sm btn-primary" data-form-url="{% url 'comercial:pedido_read' ped.pk %}">

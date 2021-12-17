@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <form method="post" id="form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <h1>Emissão de nota fiscal</h1 >
+            </div>
+
+            <div class="form-group col-md-6 mb-0">
+                <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
+                <a href="/com/orcamento/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/com/orcamento/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <button type="button" id="delete" class="btn btn-primary">Deletar</button>
+                <button type="button" name="nfe" id="prenota-add" class="btn btn-primary">Processa NFe</button>
+                <button type="button" name="nfe" id="testaJson" class="btn btn-primary">Testa Json</button>
+            </div>
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-group col-md-2 mb-0">
+                {{ form.num|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.num_nf|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0 " >
+                {{ form.data_cadastro|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.status|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0 ">
+                {{ form.data_emissao|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-5 mb-0">
+                {{ form.cliente|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.operacao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.vencimentos|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">    
+            <div class="form-group col-md-1 mb-0">
+                {{ form.tipo_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.transportadora|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-1 mb-0">
+                {{ form.volumes|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-1 mb-0">
+                {{ form.peso_liquido|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-1 mb-0">
+                {{ form.peso_bruto|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-1 mb-0">
+                {{ form.marca|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">    
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_total_produtos|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_total_entrega|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                <button id="modalFeito" class="btn btn-primary" >Pesquisar produtos</button>
+            </div>
+        </div>
+
+        <div id="orcamento-itens">
+            {% include "comercial/entrega_itens_table.html" %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                {{ form.obs|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6 mb-0">
+                {{ form.obs_nf|as_crispy_field }}
+            </div>
+        </div> 
+
+        <div class="form-row" ></div>
+            <div class="form-group col-md-2 mb-0"></div>
+                <div id="entrega-id">{{ entrega_id }}</div>
+                <div id="cliente-id">{{ cliente_id }}</div>
+                <div id="prod-selected"></div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+
+{% include "comercial/entrega_prod_search.html" %}
+
+{% endblock content %}
+
+{% block extrascripts %}
+
+<script>
+
+$(function () {
+    $("#modalFeito").click(function(event){
+        event.preventDefault();
+        if ($("#entrega-id").text()){
+                //$("#form").submit();
+                var entrega_id = $("#entrega-id").text();
+                $("#pesquisa-prod").modal('show');
+            }
+        else {  
+            $("#form").submit();
+        }
+    });
+
+    $("#pesquisar").click(function(event){
+        var pesq = $("#pesquisa").val();
+        var cliente_id = $("#cliente-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:entrega_prod_search' %}",
+            data: {"pesquisa": pesq, "cliente_id": cliente_id},
+            success: function(result){
+                $("#prod-tab").html(result) 
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    });
+
+    $("#prod-tab").on("click", ".btnSelect", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var produto_id = currentRow.find("td:eq(6)").text();
+        var pedido_item_id = currentRow.find("td:eq(8)").text();
+        var entrega_id = $("#entrega-id").text();
+
+        alert("Entrega: " + entrega_id + "Produto: " + produto_id + "Pedido-Item: " + pedido_item_id)
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:entrega_item_add' %}",  
+            data: {"produto_id": produto_id, "entrega_id": entrega_id},
+            success: function(result){
+                location.reload();
+                $("#pesquisa-prod").modal('toggle'); 
+            },
+            error: function(error){
+                alert(error)
+            }
+        });
+    });
+
+    $("#itens-table").on("click", ".delete-item", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var item_id = currentRow.find("td:eq(9) input").val();
+        alert(item_id);
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:entrega_item_delete' %}",
+            data: {"item_id": item_id},
+            success: function(result){
+                location.reload();
+            },
+            error: function(error){
+                alert("Não foi possivel completar o processo")
+            }
+        });
+    }); 
+
+    $("#prenota-add").click(function(event){
+        var entrega_id = $("#entrega-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pre_nota_add' %}",
+            data: {"entrega_id": entrega_id},
+            success: function(result){
+                alert("Pré nota criada")
+            },
+            error: function(error){
+                alert("não foi possível criar a pré nota")
+            }
+        })
+    });
+
+    $("#delete").click(function(event){
+        var orcamento_id = $("#entrega-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:entrega_delete' %}",
+            data: {"entrega_id": entrega_id},
+            success: function(result){
+                alert("Entrega Excluída com sucesso")
+            },
+            error: function(error){
+                alert("A entrega não pode ser excluída")
+            }
+
+        })
+    });
+
+    
+})
+
+
+
+
+
+
+
+</script>
+
+{% endblock extrascripts %}

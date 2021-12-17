@@ -61,6 +61,7 @@ class Parceiro(models.Model):
     email_contato = models.CharField(max_length=60, blank=True, null=True)
     #Obs
     obs = models.TextField(blank=True, null=True)
+    suframa = models.CharField(max_length=10, blank=True, null=True)
 
     def __str__(self):
         return self.nome
