@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     #'localflavor',
     'django_cpf_cnpj',
     #'django_extensions',
-    'bootstrap_modal_forms',
+    #'bootstrap_modal_forms',
 
     #My apps
     'core',
