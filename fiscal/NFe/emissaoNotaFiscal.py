@@ -75,6 +75,7 @@ JSON request:
 '''
 
 import http.client
+from decouple import config
 
 conn = http.client.HTTPSConnection("webmaniabr.com")
 
@@ -83,10 +84,10 @@ payload = "{\"ID\": 1137,\"url_notificacao\": \"https://webmaniabr.com/retorno.p
 headers = {
     'cache-control': "no-cache",
     'content-type': "application/json",
-    'x-consumer-key': "SEU_CONSUMER_KEY",
-    'x-consumer-secret': "SEU_CONSUMER_SECRET",
-    'x-access-token': "SEU_ACCESS_TOKEN",
-    'x-access-token-secret': "SEU_ACCESS_TOKEN_SECRET"
+    'x-consumer-key': config('x-consumer-key'),
+    'x-consumer-secret': config('x-consumer-secret'),
+    'x-access-token': config('x-access-token'),
+    'x-access-token-secret': config('x-access-token-secret')
 }
 
 conn.request("POST", "/api/1/nfe/emissao/", payload, headers)
@@ -94,4 +95,6 @@ conn.request("POST", "/api/1/nfe/emissao/", payload, headers)
 res = conn.getresponse()
 data = res.read()
 
+print(headers)
+print(payload)
 print(data.decode("utf-8"))

@@ -1,6 +1,8 @@
 from django import forms
+
 #from django.forms.widgets import HiddenInput
 from .models import *
+from fiscal.models import NFe_transmissao
 #from django.forms.models import inlineformset_factory
 #from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Button, Hidden, Layout, Field, Fieldset, Div, HTML, ButtonHolder, Submit
@@ -165,12 +167,30 @@ class Pedido_itens_formset(forms.Form):
 #
 #--------------------------------------
 class EntregaDetailForm(forms.ModelForm):
+    num_nf = forms.CharField(disabled=True)
+    num = forms.CharField(disabled=True)
+    data_cadastro = forms.CharField(disabled=True)
+    data_emissao = forms.CharField(disabled=True)
+    valor_total_produtos = forms.CharField(disabled=True)
+    valor_total_entrega = forms.CharField(disabled=True)
+    #status = forms.ChoiceField(disabled=True)
+
     class Meta:
         model = Entrega
         fields = '__all__' 
         widgets = {
-          'obs': forms.Textarea(attrs={'rows':3, 'cols':6}),
-          'obs_nf': forms.Textarea(attrs={'rows':3, 'cols':6}),
+            'obs': forms.Textarea(attrs={'rows':3, 'cols':6}),
+            'obs_nf': forms.Textarea(attrs={'rows':3, 'cols':6}),
+        }
+
+class EntregaRetornoForm(forms.ModelForm):
+    class Meta:
+        model = NFe_transmissao
+        fields = '__all__' 
+        widgets = {
+          'log': forms.Textarea(attrs={'rows':5, 'cols':8}),
+          #'nfe': forms.Textarea(attrs={'rows':3, 'cols':6}),
+          
         }
 
 class Entrega_itens_BaseFormSet(BaseFormSet):
@@ -203,6 +223,7 @@ class Entrega_itens_BaseFormSet(BaseFormSet):
                 raise forms.ValidationError(
                     'O preço deve ser um valor numérico.',
                     code='valor_invalido')
+            ncm = form.cleaned_data.get('ncm')
 
 class Entrega_itens_formset(forms.Form):
     
@@ -215,5 +236,6 @@ class Entrega_itens_formset(forms.Form):
     qtd = forms.CharField(max_length=15, label='Quantidade', required=False, widget=forms.TextInput(attrs={'size': '5'}))
     pr_unit = forms.CharField(max_length=15, label='Preço Unitário', required=False, widget=forms.TextInput(attrs={'size': '5'}))
     pr_tot = forms.CharField(max_length=15, label='Preço Total', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '6'}))
-    obs = forms.CharField(max_length=500, label='Qtd. Entregue', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '20'}))
+    obs = forms.CharField(max_length=500, label='Qtd. Entregue', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '10'}))
+    ncm = forms.CharField(max_length=500, label='Qtd. Entregue', required=False, disabled=False, widget=forms.TextInput(attrs={'size': '6'}))
 

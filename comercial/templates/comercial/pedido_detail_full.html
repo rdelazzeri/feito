@@ -176,22 +176,6 @@ $(function () {
 
         })
     })
-
-    $("#testaJson").click(function(event){
-        var pedido = $("#pedido-id").text();
-        $.ajax({
-            type: "GET",
-            url: "{% url 'comercial:pedido_testaJson' %}",
-            data: {"pedido": pedido},
-            success: function(result){
-                alert("Pré nota criada com sucesso")
-            },
-            error: function(error){
-                alert(error)
-            }
-
-        })
-    })
 })
 
 

@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models.deletion import CASCADE, PROTECT
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
+from comercial.models import Entrega
+
 # Create your models here.
 
 class Pre_nota_last_num(models.Model):
@@ -14,12 +16,17 @@ AMBIENTE_OPCOES = (
 
 class NF_config(models.Model):
     last_num = models.IntegerField(default=0)
-    ambiente = models.CharField(max_length=1, choices = AMBIENTE_OPCOES, default=1, null=True, blank=True)
+    ambiente = models.CharField(max_length=1, choices = AMBIENTE_OPCOES, default=2, null=True, blank=True)
     url_notificacao = models.CharField(max_length=80, null=True, blank=True)
     aliq_credito_simples = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    consumer_key = models.CharField(max_length=60, null=True, blank=True)
+    consumer_secret = models.CharField(max_length=60, null=True, blank=True)
+    access_token = models.CharField(max_length=60, null=True, blank=True)
+    access_token_secret = models.CharField(max_length=60, null=True, blank=True)
 
 class Pre_nota(models.Model):
-    num_nf = models.PositiveIntegerField(default=0)
+    entrega = models.ForeignKey(Entrega, on_delete=CASCADE, related_name='nfe')
+    num_nf = models.IntegerField(default=0)
     operacao = models.CharField(max_length=1, null=True, blank=True)
     natureza_operacao = models.CharField(max_length=60, null=True, blank=True)
     modelo = models.CharField(max_length=1, null=True, blank=True)
@@ -29,7 +36,7 @@ class Pre_nota(models.Model):
 
 
 class Pre_nota_cliente(models.Model):
-    pre_nota = models.OneToOneField(Pre_nota, on_delete=PROTECT, related_name='cliente')
+    pre_nota = models.OneToOneField(Pre_nota, on_delete=CASCADE, related_name='cliente')
     cpf = models.CharField(max_length=11, null=True, blank=True)
     nome_completo = models.CharField(max_length=60, null=True, blank=True)
     cnpj = models.CharField(max_length=14, null=True, blank=True)
@@ -81,6 +88,7 @@ class Pre_nota_produtos(models.Model):
     ativo_permanente = models.BooleanField(default=False)
     veiculo_usado = models.CharField(max_length=14, null=True, blank=True)
     ex_ipi = models.CharField(max_length=3, null=True, blank=True)
+    classe_imposto = models.CharField(max_length=15, null=True, blank=True)
 
 class Pre_nota_impostos(models.Model):
     Pre_nota_produtos = OneToOneField(Pre_nota_produtos, on_delete=CASCADE, related_name='impostos')
@@ -162,7 +170,7 @@ class Pre_nota_transporte(models.Model):
     seguro = models.CharField(max_length=14, blank=True, null=True)
 
 class Pre_nota_entrega(models.Model):
-    pre_nota = OneToOneField(Pre_nota, on_delete=CASCADE, related_name='entrega')
+    pre_nota = OneToOneField(Pre_nota, on_delete=CASCADE, related_name='local_entrega')
     cpf = models.CharField(max_length=11, null=True, blank=True)
     nome_completo = models.CharField(max_length=60, null=True, blank=True)
     cnpj = models.CharField(max_length=14, null=True, blank=True)
@@ -191,8 +199,33 @@ class Pre_nota_parcelas(models.Model):
     valor = models.CharField(max_length=14, blank=True, null=True)
 
 
+class NFe_transmissao(models.Model):
+    #remessa
+    pre_nota = ForeignKey(Pre_nota, on_delete=CASCADE, related_name='retorno')
+    num_nf = models.PositiveIntegerField(default=0)
+    nfe_json = models.TextField(max_length=50000, null=True, blank=True)
+    #retorno
+    error = models.CharField(max_length=300, null=True, blank=True)
+    uuid = models.CharField(max_length=100, null=True, blank=True)
+    nfe = models.CharField(max_length=20, null=True, blank=True)
+    serie = models.CharField(max_length=3, null=True, blank=True)
+    status = models.CharField(max_length=40, null=True, blank=True)
+    motivo = models.CharField(max_length=60, null=True, blank=True)
+    recibo = models.CharField(max_length=100, null=True, blank=True)
+    chave = models.CharField(max_length=60, null=True, blank=True)
+    modelo = models.CharField(max_length=4, null=True, blank=True)
+    log = models.TextField(max_length=1000, null=True, blank=True)
+    xml = models.URLField(max_length=300, null=True, blank=True)
+    danfe = models.URLField(max_length=300, null=True, blank=True)
+    danfe_simples = models.URLField(max_length=300, null=True, blank=True)
+    
 
-
+    def erro(self):
+        if self.status == 'aprovado':
+            return False
+        else:
+            return True
+    
 
 
 

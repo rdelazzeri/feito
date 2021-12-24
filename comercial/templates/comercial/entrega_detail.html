@@ -17,7 +17,7 @@
                 <a href="/com/orcamento/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="button" id="delete" class="btn btn-primary">Deletar</button>
                 <button type="button" name="nfe" id="prenota-add" class="btn btn-primary">Processa NFe</button>
-                <button type="button" name="nfe" id="testaJson" class="btn btn-primary">Testa Json</button>
+                <button type="button" name="nfe" id="retorno" class="btn btn-primary">Consulta NFe</button>
             </div>
         </div>
 
@@ -32,11 +32,11 @@
             <div class="form-group col-md-2 mb-0 " >
                 {{ form.data_cadastro|as_crispy_field }}
             </div>
-            <div class="form-group col-md-2 mb-0">
-                {{ form.status|as_crispy_field }}
-            </div>
             <div class="form-group col-md-2 mb-0 ">
                 {{ form.data_emissao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.status|as_crispy_field }}
             </div>
         </div>
 
@@ -83,6 +83,10 @@
             <div class="form-group col-md-2 mb-0">
                 {{ form.valor_total_entrega|as_crispy_field }}
             </div>
+            <div class="form-group col-md-6 mb-0">
+                {{ parcelas }}
+            </div>
+            
         </div>
 
         <div class="form-row">
@@ -96,10 +100,10 @@
         </div>
 
         <div class="form-row">
-            <div class="form-group col-md-6 mb-0">
+            <div class="form-group col-md-4 mb-0">
                 {{ form.obs|as_crispy_field }}
             </div>
-            <div class="form-group col-md-6 mb-0">
+            <div class="form-group col-md-4 mb-0">
                 {{ form.obs_nf|as_crispy_field }}
             </div>
         </div> 
@@ -117,6 +121,7 @@
 
 
 {% include "comercial/entrega_prod_search.html" %}
+{% include "comercial/_modal.html" %}
 
 {% endblock content %}
 
@@ -201,13 +206,30 @@ $(function () {
             url: "{% url 'comercial:pre_nota_add' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-                alert("Pré nota criada")
+                alert(result)
             },
             error: function(error){
                 alert("não foi possível criar a pré nota")
             }
         })
     });
+
+    $("#retorno").click(function(event){
+        var entrega_id = $("#entrega-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pre_nota_retorno' %}",
+            data: {"entrega_id": entrega_id},
+            success: function(result){
+                $(".modal-content").html(result)
+                $("#create-modal").modal('toggle'); 
+            },
+            error: function(error){
+                alert("não foi possível visualizar o retnorno")
+            }
+        })
+    });
+
 
     $("#delete").click(function(event){
         var orcamento_id = $("#entrega-id").text();

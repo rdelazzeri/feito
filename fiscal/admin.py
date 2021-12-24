@@ -41,3 +41,7 @@ class GrupoAdmin(admin.ModelAdmin):
 @admin.register(Pre_nota_transporte)
 class GrupoAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(NFe_transmissao)
+class GrupoAdmin(admin.ModelAdmin):
+    pass

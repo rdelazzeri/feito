@@ -19,8 +19,18 @@ ALLOWED_HOSTS=127.0.0.1, .localhost
 #EMAIL_USE_TLS=
 #EMAIL_HOST_USER=
 #EMAIL_HOST_PASSWORD=
+#Web mania
+x-consumer-key = "oeVmTBe48Em8qLhPodRwjHPQsWxTZNtt",
+x-consumer-secret = "5zLmEoiCPGyrBLnfuA2YdhsFtIl8SNPKnjNOVch8jQesULZq",
+x-access-token = "3026-NDYK34iYJpDB2bxVa37cZk2U0utAbLZyvpHtSTqC1VhhOA7n",
+x-access-token-secret = "GJ6APs8LCFhj9kS05xbCArYZ5RvzmTAFppuvJrU8kInBdIlj"
 """.strip() % get_random_string(50, chars)
 
 # Writing our configuration file to '.env'
 with open('.env', 'w') as configfile:
     configfile.write(CONFIG_STRING)
+
+
+
+#rodar este comanda para gerar o arquivo .env
+# python contrib/env_gen.py

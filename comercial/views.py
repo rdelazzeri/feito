@@ -16,7 +16,6 @@ from django.urls import reverse_lazy
 #from django_filters.views import FilterView
 #from django_tables2.views import SingleTableMixin
 from bootstrap_modal_forms.generic import BSModalCreateView
-from prod.models import Produto
 from django.forms import modelformset_factory, inlineformset_factory, formset_factory
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -27,7 +26,9 @@ from fiscal.models import *
 from django.db import transaction
 from fiscal.services import *
 import datetime
+from datetime import datetime, date
 from django.utils.timezone import now
+from contextlib import suppress
 
 from bootstrap_modal_forms.generic import (
     BSModalLoginView,
@@ -435,8 +436,8 @@ def pedido_entrega_add(request):
     print(entrega_new.num)
     entrega_new.operacao = pedido.operacao
     entrega_new.status__id = 1
-    entrega_new.data_cadastro = datetime.date.today()
-    entrega_new.data_emissao =  datetime.date.today()
+    entrega_new.data_cadastro = date.today()
+    entrega_new.data_emissao =  date.today()
     entrega_new.cliente = pedido.cliente
     entrega_new.vencimentos = pedido.vencimentos
     entrega_new.transportadora = pedido.transportadora
@@ -521,56 +522,95 @@ def entrega_detail(request, entrega_id):
     entrega = get_object_or_404(Entrega, pk=entrega_id)
     cliente_id = entrega.cliente_id
     entrega_itens = Entrega_item.objects.select_related('pedido_item__pedido').filter(entrega = entrega.id)
-    entrega_itens_formset = formset_factory(Entrega_itens_formset, Entrega_itens_BaseFormSet, extra=0 )    
-    
-    for item in entrega_itens:
-        pi = item.pedido_item
-        print(pi)
-        entrega_itens_initial = [{
-        'item_id': item.id,
-        'pedido': pi,
-        'cod': item.produto.cod,
-        'desc': item.produto.desc, 
-        'unid': item.produto.unid.unid, 
-        'qtd': item.qtd, 
-        'pr_unit': item.pr_unit, 
-        'pr_tot':item.pr_tot, 
-        'obs':item.obs
-        }]
+    entrega_itens_formset = formset_factory(Entrega_itens_formset, Entrega_itens_BaseFormSet, extra=0 )
+    parcelas = Entrega_parcelas.objects.filter(entrega=entrega)    
+    p = ''
+    for parc in parcelas:
+        dt = parc.vencimento
+        vc = dt.strftime('%d/%m/%y')
+        p = p + 'Venc.: ' + vc + ' Val.: ' + str(parc.valor_parcela) + '\n'
+
+    entrega_itens_initial = [{
+    'item_id': item.id,
+    'pedido': item.pedido_item.pedido.num,
+    'cod': item.produto.cod,
+    'desc': item.produto.desc, 
+    'unid': item.produto.unid.unid, 
+    'qtd': item.qtd, 
+    'pr_unit': item.pr_unit, 
+    'pr_tot':item.pr_tot, 
+    'obs':item.obs,
+    'ncm': item.produto.ncm.cod
+    }for item in entrega_itens]
     
     formset = entrega_itens_formset(initial = entrega_itens_initial)
 
     if request.method == 'POST':
         print('é post')
-        form = EntregaDetailForm(request.POST, instance = entrega)
-        formset = entrega_itens_formset(request.POST)
-        print(formset)
-        if form.is_valid():
-            print('form is valid')
-            if formset.is_valid():
-                print('formset is valid')
-                entrega = form.save(commit=False)
-                entrega.save()
-                for it in formset:
-                    if id:
-                        new_qtd = it.cleaned_data.get('qtd')
-                        item_id = it.cleaned_data.get('item_id')
-                        codigo = item_id
-                        print(item_id)
-                        print(it.cleaned_data)
-                        if item_id:
-                            itens_data = Entrega_item.objects.get(pk=item_id)
-                            itens_data.qtd = new_qtd
-                            itens_data.pr_unit = it.cleaned_data.get('pr_unit')
-                            itens_data.save()
-                return redirect('comercial:entrega_detail', entrega.id)
-            else:
-                print(formset.non_form_errors())
-            
-    else:
-        form = EntregaDetailForm(instance  = entrega)
-        print(entrega.id)
-    return render(request, 'comercial/entrega_detail.html', {'form': form, 'formset': formset, 'entrega_id': entrega.id, 'cliente_id': cliente_id})
+        #verifica se já existe uma nota emitida e aprovada
+        pre_nota = Pre_nota.objects.filter(entrega = entrega).first()
+        print('pre_nota: ' + str(pre_nota.id))
+        ret = NFe_transmissao.objects.filter(pre_nota = pre_nota).first()
+        print('status da transmissao: ' + str(ret.status))
+
+        if ret.erro():
+            print('NFe não aprovada')
+            form = EntregaDetailForm(request.POST, instance = entrega)
+            formset = entrega_itens_formset(request.POST)
+            #print(formset)
+            if form.is_valid():
+                print('form is valid')
+                if formset.is_valid():
+                    print('formset is valid')
+                    entrega = form.save(commit=False)
+                    entrega.save()
+                    for it in formset:
+                        if id:
+                            new_qtd = it.cleaned_data.get('qtd')
+                            item_id = it.cleaned_data.get('item_id')
+                            codigo = item_id
+                            print(it.cleaned_data)
+                            if item_id:
+                                itens_data = Entrega_item.objects.get(pk=item_id)
+                                itens_data.qtd = new_qtd
+                                itens_data.pr_unit = it.cleaned_data.get('pr_unit')
+                                #atualiza NCM do produto direto da tela da entrega
+                                #tem que digitar o código correspondente na tabela
+                                try:
+                                    print('entrei no try do ncm')
+                                    ncm_cod = it.cleaned_data.get('ncm')
+                                    print(ncm_cod)
+                                    ncm = NCM.objects.get(cod = ncm_cod)
+                                    print(ncm.desc)
+                                    itens_data.produto.ncm = ncm
+                                except:
+                                    pass
+                                itens_data.save()
+                                itens_data.produto.save()
+
+                    return redirect('comercial:entrega_detail', entrega.id)
+                else:
+                    print(formset.non_form_errors())
+                
+    
+    form = EntregaDetailForm(instance  = entrega)
+    print(entrega.id)
+    return render(request, 'comercial/entrega_detail.html', {'form': form, 'formset': formset, 'entrega_id': entrega.id, 'cliente_id': cliente_id, 'parcelas': p})
+
+
+def pre_nota_retorno(request):
+    if request.method == 'GET' and request.is_ajax:
+        entrega_id = request.GET.get('entrega_id')
+        pre_nota = Pre_nota.objects.filter(entrega_id = entrega_id).first()
+        print(pre_nota.id)
+        ret = NFe_transmissao.objects.filter(pre_nota_id = pre_nota.id).first()
+        print(ret)
+        form = EntregaRetornoForm(instance=ret)
+        print(form)
+        data = render_to_string('comercial/entrega_retorno.html', {'form': form, 'ret': ret})
+        print(data)
+        return HttpResponse(data)
+
 
 def entrega_prod_search(request):
     data = dict()    
@@ -622,66 +662,52 @@ def entrega_item_delete(request):
     it.delete()
     return HttpResponse('Produto excluido')
 
-
-
-@transaction.atomic
-def entrega_prenota_add(request):
-    pass
-    orcamento_id = request.GET.get('orcamento_id')
-    print(orcamento_id)
-    orc = Orcamento.objects.get(pk=orcamento_id)
-    cfg = Comercial_config.objects.get(pk=1)
-    novo_num = cfg.num_ult_pedido + 1
-    cfg.num_ult_pedido = novo_num
-    cfg.save()
-    print(novo_num)
-    ped_new = Pedido()
-    ped_new.num = novo_num
-    print(ped_new.num)
-    ped_new.operacao = orc.operacao
-    ped_new.status__id = 1
-    ped_new.data_cadastro = '2021-12-16'
-    ped_new.data_previsao =  orc.data_previsao   #datetime.now() + datetime.timedelta(days=orc.prazo_entrega)
-    ped_new.cliente = orc.cliente
-    ped_new.vencimentos = orc.vencimentos
-    ped_new.transportadora = orc.transportadora
-    ped_new.tipo_frete = orc.tipo_frete
-    ped_new.valor_frete = orc.valor_frete
-    ped_new.obs = orc.obs
-    ped_new.save()
-    print(ped_new.id)
-
-    itens = Orcamento_item.objects.filter(orcamento__id = orc.id)
-    print(itens)
-    for item in itens:
-        print('entrei no for')
-        ped_new_item = Pedido_item()
-        print('instanciei o pedido item')
-        ped_new_item.pedido = ped_new
-        ped_new_item.produto = item.produto
-        ped_new_item.qtd = item.qtd
-        ped_new_item.pr_unit = item.pr_unit
-        ped_new_item.obs = item.obs
-        ped_new_item.save()
-
-    #return JsonResponse({'pedido_id': ped_new.id})
-    return redirect('comercial:pedido_full', ped_new.id)
-
-
 @transaction.atomic
 def pre_nota_add(request):
-    print('entrei na nf')
-    if request.method == 'GET':
-        print('é get')
+    print('comercial.views.pre_nota_add')
+    if request.method == 'GET' and request.is_ajax:
+        print('metodo get')
         entrega_id = request.GET.get('entrega_id')
+        print('entrega_id: ' + str(entrega_id))
         entrega = Entrega.objects.get(pk=entrega_id)
-        itens = Entrega_item.objects.filter(entrega_id = entrega_id)
-        cfg = NF_config.objects.get(pk = 1)
-        cfg.last_num += 1
-        cfg.save()
-        num_nf = cfg.last_num
+        print('Número da NF: ' + str(entrega.num_nf))
 
-        pnf = Pre_nota()
+        #verifica se já existe uma nota emitida e aprovada
+        pre_nota = Pre_nota.objects.filter(entrega = entrega).first()
+        ret = NFe_transmissao.objects.filter(pre_nota = pre_nota).first()
+        if ret:
+            if ret.status == 'aprovado': 
+                print('nf já emitida e aprovada')
+                return HttpResponse('Nota fiscal já emitida')
+
+        #se não tiver nota aprovada, pode sobreescrever a pre-nota
+        itens = Entrega_item.objects.filter(entrega_id = entrega_id)
+        cfg = NF_config.objects.filter(pk = 1).first()
+                
+        if entrega.num_nf == 0:
+            print(cfg.last_num)
+            cfg.last_num = cfg.last_num + 1
+            num_nf = cfg.last_num
+            print('número da nota fiscal' + str(num_nf))
+            cfg.save()
+            entrega.num_nf = num_nf
+            entrega.save()
+        else:
+            num_nf = entrega.num_nf
+        
+        try:
+            print('Verificando se já existe pré-nota gravada')
+            pnf = Pre_nota.objects.get(entrega = entrega)
+            print('número da pre_nota: ' + str(pnf.id))
+            #Flag indicando uma emissão de correcao/ajuste de nf reprovada
+            correcao = True
+        except:
+            print('nenhuma pre-nota encontrada')
+            pnf = Pre_nota()
+            pnf.entrega = entrega
+            #Flag indicando uma primeira emissao da nota
+            correcao = False
+
         pnf.num_nf = num_nf
         pnf.operacao = entrega.operacao.tipo
         pnf.natureza_operacao = entrega.operacao.natureza_operacao
@@ -689,14 +715,26 @@ def pre_nota_add(request):
         pnf.finalidade = entrega.operacao.finalidade
         pnf.ambiente = cfg.ambiente
         pnf.url_notificacao = cfg.url_notificacao
+        #pnf.classe_imposto = entrega.operacao.classe_imposto
         pnf.save()
         
-        pnf_cli = Pre_nota_cliente()
+        #Pre_nota_cliente
+        if correcao: 
+            pnf_cli = Pre_nota_cliente.objects.filter(pre_nota = pnf).first()
+            if pnf_cli:
+                print('Atualizando - Pnf_cli: ' + str(pnf_cli.id))
+            else:
+                pnf_cli = Pre_nota_cliente()
+                print('Criando - Pnf_cli: ' + str(pnf_cli.id))
+        else:
+            pnf_cli = Pre_nota_cliente()
+            print('Criando - Pnf_cli: ' + str(pnf_cli.id))
+
         pnf_cli.pre_nota = pnf
         pnf_cli.cpf = entrega.cliente.cpf
         pnf_cli.nome_completo = entrega.cliente.nome
         pnf_cli.cnpj = entrega.cliente.cnpj
-        pnf_cli.razao_social = entrega.cliente.cnpj
+        pnf_cli.razao_social = entrega.cliente.nome
         pnf_cli.ie = entrega.cliente.insc_est
         pnf_cli.suframa = entrega.cliente.suframa
         pnf_cli.substituto_tributario = ''
@@ -716,6 +754,7 @@ def pre_nota_add(request):
 
         #produtos
         itens = Entrega_item.objects.filter(entrega=entrega)
+        Pre_nota_produtos.objects.filter(pre_nota=pnf).delete()
         for item in itens:
             pnf_prod = Pre_nota_produtos()
             pnf_prod.pre_nota = pnf
@@ -747,7 +786,10 @@ def pre_nota_add(request):
             pnf_prod.ativo_permanente = False
             #pnf_prod.veiculo_usado = ''
             #pnf_prod.ex_ipi = ''
+            pnf_prod.classe_imposto = entrega.operacao.classe_imposto
             pnf_prod.save()
+
+            '''
             pnf_icms = Pre_nota_ICMS()
             pnf_icms.pre_nota_produtos = pnf_prod
             pnf_icms.aliquota = item.aliq_ICMS
@@ -763,8 +805,20 @@ def pre_nota_add(request):
             #pnf_ipi.situacao_tributaria = models.CharField(max_length=3, null=True, blank=True)
             #pnf_ipi.codigo_enquadramento = models.CharField(max_length=3, null=True, blank=True)
             #pnf_ipi.aliquota = models.CharField(max_length=4, null=True, blank=True)
+            '''
 
-        pnf_pedido = Pre_nota_pedido()
+        #Pre_nota_pedido
+        if correcao: 
+            pnf_pedido = Pre_nota_pedido.objects.filter(pre_nota = pnf).first()
+            if pnf_pedido:
+                print('Atualizando - Pnf_pedido: ' + str(pnf_pedido.id))
+            else:
+                pnf_pedido = Pre_nota_pedido()
+                print('Criando - Pnf_pedido: ' + str(pnf_pedido.id))
+        else:
+            pnf_pedido = Pre_nota_pedido()
+            print('Criando - Pnf_pedido: ' + str(pnf_pedido.id))
+
         pnf_pedido.pre_nota = pnf
         pnf_pedido.presenca = 9
         #pnf_pedido.intermediador
@@ -779,21 +833,32 @@ def pre_nota_add(request):
         #pnf_pedido.informacoes_fisco 
         pnf_pedido.informacoes_complementares = entrega.operacao.mensagem_NF
         pnf_pedido.observacoes_contribuinte = entrega.obs_nf
-        pnf_pedido.forma_pagamento = 1 
-        pnf_pedido.desc_pagamento = 15
-        pnf_pedido.tipo_integracao = 2
-        #pnf_pedido.valor_pagamento = 0
+        #pnf_pedido.forma_pagamento = 1 
+        #pnf_pedido.desc_pagamento = 15
+        #pnf_pedido.tipo_integracao = 2
+        #pnf_pedido.valor_pagamento = entrega.valor_total_entrega
         #pnf_pedido.cnpj_credenciadora 
         #pnf_pedido.bandeira 
         #pnf_pedido.autorizacao
         pnf_pedido.save() 
 
-        pnf_transporte = Pre_nota_transporte()
+        #Pre_nota_transporte
+        if correcao: 
+            pnf_transporte = Pre_nota_transporte.objects.filter(pre_nota = pnf).first()
+            if pnf_transporte:
+                print('Atualizando - Pnf_transporte: ' + str(pnf_transporte.id))
+            else:
+                pnf_transporte = Pre_nota_transporte()
+                print('Criando - Pnf_transporte: ' + str(pnf_transporte.id))
+        else:
+            pnf_transporte = Pre_nota_transporte()
+            print('Criando - Pnf_transporte: ' + str(pnf_transporte.id))
+
         pnf_transporte.pre_nota = pnf
-        pnf_transporte.volume = ''
-        pnf_transporte.peso_bruto = ''
-        pnf_transporte.peso_liquido = ''
-        pnf_transporte.marca = ''
+        pnf_transporte.volume = entrega.volumes
+        pnf_transporte.peso_bruto = entrega.peso_bruto
+        pnf_transporte.peso_liquido = entrega.peso_liquido
+        pnf_transporte.marca = entrega.marca
         pnf_transporte.numeracao = ''
         pnf_transporte.lacres = ''
         if entrega.transportadora:
@@ -803,16 +868,27 @@ def pre_nota_add(request):
         #pnf_transporte.cpf = 
         #pnf_transporte.nome_completo = models.CharField(max_length=60, blank=True, null=True)
         #pnf_transporte.endereco = models.CharField(max_length=60, blank=True, null=True)
-        #pnf_transporte.uf = models.CharField(max_length=2, blank=True, null=True)
-        #pnf_transporte.cidade = models.CharField(max_length=60, blank=True, null=True)
-        #pnf_transporte.cep = models.CharField(max_length=8, blank=True, null=True)
+            pnf_transporte.uf = entrega.transportadora.estado
+            pnf_transporte.cidade = entrega.transportadora.cidade
+            pnf_transporte.cep = entrega.transportadora.cep
         #pnf_transporte.placa = models.CharField(max_length=7, blank=True, null=True)
         #pnf_transporte.uf_veiculo = models.CharField(max_length=2, blank=True, null=True)
         #pnf_transporte.rntc = models.CharField(max_length=14, blank=True, null=True)
         #pnf_transporte.seguro = models.CharField(max_length=14, blank=True, null=True)
         pnf_transporte.save()
 
-        pnf_fatura = Pre_nota_fatura()
+        #Pre_nota_fatura
+        if correcao: 
+            pnf_fatura = Pre_nota_fatura.objects.filter(pre_nota = pnf).first()
+            if pnf_fatura:
+                print('Atualizando - Pnf_fatura: ' + str(pnf_fatura.id))
+            else:
+                pnf_fatura = Pre_nota_fatura()
+                print('Criando - Pnf_fatura: ' + str(pnf_fatura.id))
+        else:
+            pnf_fatura = Pre_nota_fatura()
+            print('Criando - Pnf_fatura: ' + str(pnf_fatura.id))
+
         pnf_fatura.pre_nota = pnf
         pnf_fatura.numero = num_nf
         pnf_fatura.valor = entrega.valor_total_entrega
@@ -820,183 +896,18 @@ def pre_nota_add(request):
         pnf_fatura.valor_liquido = entrega.valor_total_entrega
         pnf_fatura.save()
 
-        pnf_parcela = Pre_nota_parcelas()
-        pnf_parcela.pre_nota = pnf
-        pnf_parcela.vencimento = ''
-        pnf_parcela.valor = ''
-        pnf_parcela.save()
 
+        parcelas = Entrega_parcelas.objects.filter(entrega=entrega)
+        Pre_nota_parcelas.objects.filter(pre_nota=pnf).delete()
+        for parcela in parcelas:
+            pnf_parcela = Pre_nota_parcelas()
+            pnf_parcela.pre_nota = pnf
+            pnf_parcela.vencimento = parcela.vencimento.strftime('%Y-%m-%d')
+            pnf_parcela.valor = parcela.valor_parcela
+            pnf_parcela.save()
+
+    print('Nota fiscal pronta para ser gerada')
     print(gera_nfe(pnf.id))
+
     return HttpResponse('Pre nota criada')
 
-
-###Obsoleto
-@transaction.atomic
-def pedido_emite_nf(request):
-    print('entrei na nf')
-    if request.method == 'GET':
-        print('é get')
-        ped_id = request.GET.get('pedido')
-        pedido = Pedido.objects.get(pk=ped_id)
-        itens = Pedido_item.objects.filter(pedido = pedido)
-        cfg = NF_config.objects.get(pk = 1)
-        cfg.last_num += 1
-        cfg.save()
-        num_nf = cfg.last_num
-
-        pnf = Pre_nota()
-        pnf.pre_nota_id = num_nf
-        pnf.operacao = pedido.operacao.tipo
-        pnf.natureza_operacao = pedido.operacao.natureza_operacao
-        pnf.modelo = '1' # 1 - NF-e - 2 - NFC-e
-        pnf.finalidade = pedido.operacao.finalidade
-        pnf.ambiente = cfg.ambiente
-        pnf.url_notificacao = cfg.url_notificacao
-        pnf.save()
-        
-        pnf_cli = Pre_nota_cliente()
-        pnf_cli.pre_nota = pnf
-        pnf_cli.cpf = pedido.cliente.cpf
-        pnf_cli.nome_completo = pedido.cliente.nome
-        pnf_cli.cnpj = pedido.cliente.cnpj
-        pnf_cli.razao_social = pedido.cliente.cnpj
-        pnf_cli.ie = pedido.cliente.insc_est
-        pnf_cli.suframa = pedido.cliente.suframa
-        pnf_cli.substituto_tributario = ''
-        pnf_cli.consumidor_final = ''
-        pnf_cli.contribuinte = ''
-        pnf_cli.microcervejaria = False
-        pnf_cli.endereco = pedido.cliente.logradouro
-        pnf_cli.complemento = pedido.cliente.complemento
-        pnf_cli.numero = pedido.cliente.numero
-        pnf_cli.bairro = pedido.cliente.bairro
-        pnf_cli.cidade = pedido.cliente.cidade
-        pnf_cli.uf = pedido.cliente.estado
-        pnf_cli.cep = pedido.cliente.cep
-        pnf_cli.telefone = pedido.cliente.fone1
-        pnf_cli.email = pedido.cliente.email_nfe
-        pnf_cli.save()
-
-        #produtos
-        itens = Pedido_item.objects.filter(pedido=pedido)
-        for item in itens:
-            pnf_prod = Pre_nota_produtos()
-            pnf_prod.pre_nota = pnf
-            pnf_prod.produto_id = 0
-            pnf_prod.item = 0
-            pnf_prod.nome = item.produto.desc
-            pnf_prod.codigo = item.produto.cod
-            pnf_prod.ncm = item.produto.ncm
-            pnf_prod.quantidade = item.qtd
-            #pnf_prod.quantidade_tributavel = ''
-            pnf_prod.unidade = item.produto.unid.unid
-            #pnf_prod.unidade_tributavel = ''
-            pnf_prod.peso = 0
-            pnf_prod.origem = item.produto.origemFiscal
-            pnf_prod.desconto = 0
-            pnf_prod.subtotal = item.pr_unit
-            pnf_prod.subtotal_tributavel = item.pr_unit
-            pnf_prod.total = item.pr_tot
-            #pnf_prod.classe_imposto = ''
-            #pnf_prod.cest = ''
-            #pnf_prod.beneficio_fiscal = ''
-            pnf_prod.informacoes_adicionais = item.inf_adic
-            #pnf_prod.gtin = ''
-            #pnf_prod.gtin_tributavel = ''
-            #pnf_prod.cod_barras = ''
-            #pnf_prod.cod_barras_tributavel = ''
-            #pnf_prod.nve = ''
-            #pnf_prod.nrecopi = ''
-            pnf_prod.ativo_permanente = False
-            #pnf_prod.veiculo_usado = ''
-            #pnf_prod.ex_ipi = ''
-            pnf_prod.save()
-            pnf_icms = Pre_nota_ICMS()
-            pnf_icms.pre_nota_produtos = pnf_prod
-            pnf_icms.aliquota = item.aliq_ICMS
-            pnf_icms.codigo_cfop = item.codigo_cfop
-            pnf_icms.situacao_tributaria = pedido.operacao.situacao_tributaria
-            pnf_icms.aliquota_importacao = ''
-            pnf_icms.industria = ''
-            pnf_icms.majoracao = ''
-            pnf_icms.aliquota_credito = 0
-            pnf_icms.save()
-            #pnf_ipi = Pre_nota_IPI()
-            #pnf_ipi.pre_nota_produtos = pnf_prod
-            #pnf_ipi.situacao_tributaria = models.CharField(max_length=3, null=True, blank=True)
-            #pnf_ipi.codigo_enquadramento = models.CharField(max_length=3, null=True, blank=True)
-            #pnf_ipi.aliquota = models.CharField(max_length=4, null=True, blank=True)
-
-        pnf_pedido = Pre_nota_pedido()
-        pnf_pedido.pre_nota = pnf
-        pnf_pedido.presenca = 9
-        #pnf_pedido.intermediador
-        #pnf_pedido.cnpj_intermediador 
-        #pnf_pedido.id_intermediador 
-        pnf_pedido.modalidade_frete = pedido.tipo_frete
-        pnf_pedido.frete = pedido.valor_frete
-        pnf_pedido.desconto = 0
-        #pnf_pedido.total = pnf.valor_tot
-        #pnf_pedido.despesas_acessorias 
-        #pnf_pedido.despesas_aduaneiras 
-        #pnf_pedido.informacoes_fisco 
-        pnf_pedido.informacoes_complementares = pedido.operacao.mensagem_NF
-        pnf_pedido.observacoes_contribuinte = pedido.obs_nf
-        pnf_pedido.forma_pagamento = 1 
-        pnf_pedido.desc_pagamento = 15
-        pnf_pedido.tipo_integracao = 2
-        #pnf_pedido.valor_pagamento = 0
-        #pnf_pedido.cnpj_credenciadora 
-        #pnf_pedido.bandeira 
-        #pnf_pedido.autorizacao
-        pnf_pedido.save() 
-
-        pnf_transporte = Pre_nota_transporte()
-        pnf_transporte.pre_nota = pnf
-        pnf_transporte.volume = ''
-        pnf_transporte.peso_bruto = ''
-        pnf_transporte.peso_liquido = ''
-        pnf_transporte.marca = ''
-        pnf_transporte.numeracao = ''
-        pnf_transporte.lacres = ''
-        if pedido.transportadora:
-            pnf_transporte.cnpj = pedido.transportadora.cnpj
-            pnf_transporte.razao_social = pedido.transportadora.nome
-            pnf_transporte.ie = pedido.transportadora.insc_est
-        #pnf_transporte.cpf = 
-        #pnf_transporte.nome_completo = models.CharField(max_length=60, blank=True, null=True)
-        #pnf_transporte.endereco = models.CharField(max_length=60, blank=True, null=True)
-        #pnf_transporte.uf = models.CharField(max_length=2, blank=True, null=True)
-        #pnf_transporte.cidade = models.CharField(max_length=60, blank=True, null=True)
-        #pnf_transporte.cep = models.CharField(max_length=8, blank=True, null=True)
-        #pnf_transporte.placa = models.CharField(max_length=7, blank=True, null=True)
-        #pnf_transporte.uf_veiculo = models.CharField(max_length=2, blank=True, null=True)
-        #pnf_transporte.rntc = models.CharField(max_length=14, blank=True, null=True)
-        #pnf_transporte.seguro = models.CharField(max_length=14, blank=True, null=True)
-        pnf_transporte.save()
-
-        pnf_fatura = Pre_nota_fatura()
-        pnf_fatura.pre_nota = pnf
-        pnf_fatura.numero = num_nf
-        pnf_fatura.valor = pedido.valor_total_pedido
-        pnf_fatura.desconto = '0'
-        pnf_fatura.valor_liquido = pedido.valor_total_pedido
-        pnf_fatura.save()
-
-        pnf_parcela = Pre_nota_parcelas()
-        pnf_parcela.pre_nota = pnf
-        pnf_parcela.vencimento = ''
-        pnf_parcela.valor = ''
-        pnf_parcela.save()
-
-    print(gera_nfe(pnf.id))
-    return HttpResponse('Pre nota criada')
-
-def pedido_testaJson(request):
-    print('entrei no json')
-    if request.method == 'GET':
-        print('é get')
-        #ped_id = request.GET.get('pedido')
-        json = gera_nfe(16)
-        print(json)
-        return HttpResponse(json)

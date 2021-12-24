@@ -87,6 +87,7 @@ class Operacao(models.Model):
     finalidade = models.CharField("Finalidade", max_length=1, choices=FINALIDADE_OPCOES, null=True, blank=True)
     mensagem_NF = models.TextField(blank=True, null=True)
     obs = models.TextField(blank=True, null=True)
+    classe_imposto = models.CharField("Classe do imposto", max_length=15, null=True, blank=True)
 
     def __str__(self):
         return self.desc
@@ -107,11 +108,6 @@ ORCAMENTO_OPCOES = (
     (30,'PEDIDO PRONTO PARA FATURAMENTO'),
     (40,'PEDIDO FATURADO AGUARDANDO EXPEDIÇÃO'),
     (50,'PEDIDO ENTREGUE E ENCERRADO'),
-)
-
-ENTREGA_OPCOES = (
-    (0,'RASCUNHO'),
-    (1,'CONCLUÍDA'),
 )
 
 class Orcamento_status(models.Model):
@@ -242,7 +238,7 @@ def calcula_total_pedido(pedido_id):
     ped.valor_total_pedido = ped_tot
     ped.valor_total_saldo = ped_tot - ped.valor_total_entregue
     ped.save()
-    
+   
 
 class Pedido(models.Model):
     num = models.PositiveIntegerField(default='0', unique=True)
@@ -355,13 +351,19 @@ class Pedido_item(models.Model):
 
 ENTREGA_OPCOES = (
     (0,'RASCUNHO'),
-    (1,'CONCLUÍDA'),
+    (1,'ERRO NA TRANSMISSÃO'),
+    (2,'EMITIDA'),
 )
 
+'''
 def entrega_parcela_add(entrega, valor_total, vencimentos):
     parcelas = str(vencimentos.vencimentos).split(sep = '+')
     num_parc = len(parcelas)
-    val_parc = Decimal(valor_total) / num_parc
+    val_tot = Decimal(valor_total)
+    val_parc = round((val_tot / num_parc),2)
+    val_parc_saldo = (val_tot - num_parc * val_parc)
+    val_parc_1 = val_parc_saldo + val_parc
+    print('Valor total fatura: ' + str(val_tot) + 'VAlor do saldo: ' + str(val_parc_saldo) + 'Valor parcela: ' + str(val_parc) + 'Valor Parcela 1: ' + str(val_parc_1))
     hoje = datetime.date.today()
     n=0
     for parcela in parcelas:
@@ -370,11 +372,20 @@ def entrega_parcela_add(entrega, valor_total, vencimentos):
             np = '0' + str(n)
         else:
             np = str(n)
-        parc = Entrega_parcelas()
+        numparc = int(str(entrega.num_nf) + np)
+        
+        try:
+            parc = Entrega_parcelas.objects.get(entrega = entrega, num = numparc)
+        except:
+            parc = Entrega_parcelas()
+        
         parc.entrega = entrega
-        parc.num = int(str(entrega.num) + np)
+        parc.num = numparc
         parc.vencimento = datetime.date.today() + timedelta(days=int(parcela))
-        parc.valor_parcela = val_parc
+        if n == 1:
+            parc.valor_parcela = val_parc_1
+        else:
+            parc.valor_parcela = val_parc
         parc.save()
 
     print('Vencimentos original: ' + vencimentos.vencimentos)
@@ -390,9 +401,11 @@ def calcula_total_entrega(entrega_id):
     ent.save()
     entrega_parcela_add(ent, ent.valor_total_entrega, ent.vencimentos)
 
+'''
+
 class Entrega(models.Model):
     num = models.PositiveIntegerField("Número", default='0', unique=True)
-    num_nf = models.PositiveIntegerField("Número da NFe", default='0')
+    num_nf = models.IntegerField("Número da NFe", default='0')
     status = models.PositiveIntegerField(choices=ENTREGA_OPCOES, default=0)
     operacao = models.ForeignKey(Operacao, on_delete = PROTECT, null=True, blank=True)
     cliente = models.ForeignKey(Parceiro, related_name='entregas', on_delete = PROTECT, null=True, blank=True)
@@ -412,6 +425,48 @@ class Entrega(models.Model):
     valor_total_produtos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     valor_total_entrega = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
+    def update_total(self):
+        ent_tot = Entrega_item.objects.filter(entrega = self).aggregate(TOTAL = Sum('pr_tot'))['TOTAL']
+        self.valor_total_produtos = ent_tot
+        self.valor_total_entrega = ent_tot + self.valor_frete
+        hoje = datetime.date.today()
+        self.data_emissao = hoje
+        self.save()
+
+        parcelas = str(self.vencimentos).split(sep = '+')
+        num_parc = len(parcelas)
+        val_tot = Decimal(self.valor_total_entrega)
+        val_parc = round((val_tot / num_parc),2)
+        val_parc_saldo = (val_tot - num_parc * val_parc)
+        val_parc_1 = val_parc_saldo + val_parc
+        print('Valor total fatura: ' + str(val_tot) + 'VAlor do saldo: ' + str(val_parc_saldo) + 'Valor parcela: ' + str(val_parc) + 'Valor Parcela 1: ' + str(val_parc_1))
+        
+        
+        entrega_parcelas = Entrega_parcelas.objects.filter(entrega = self)
+        n_parc = entrega_parcelas.count()
+        dif_n_parc =  n_parc - num_parc
+        if dif_n_parc > 0:
+            for i in range(dif_n_parc):
+                n = i + num_parc
+                parc = entrega_parcelas[n] 
+                parc.delete()
+                
+        for n, parcela in enumerate(parcelas):
+            parc = entrega_parcelas[n]    
+            parc.entrega = self
+            parc.num = n + 1
+            parc.vencimento = datetime.date.today() + timedelta(days=int(parcela))
+            if n == 1:
+                parc.valor_parcela = val_parc_1
+            else:
+                parc.valor_parcela = val_parc
+            parc.save()
+
+            print('Vencimentos original: ' + str(self.vencimentos))
+            print('Número de parcelas: ' + str(num_parc))
+            print('hoje: ' + str(hoje))
+
+    
 
 class Entrega_parcelas(models.Model):
     entrega = models.ForeignKey(Entrega, on_delete=CASCADE)
@@ -419,6 +474,7 @@ class Entrega_parcelas(models.Model):
     vencimento = models.DateTimeField()
     valor_parcela = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
+ 
 class Entrega_item(models.Model):
     entrega = models.ForeignKey(Entrega, on_delete=CASCADE)
     produto = models.ForeignKey(Prod, on_delete=PROTECT, null=True, blank=True)
@@ -475,7 +531,11 @@ class Entrega_item(models.Model):
         return self.produto.desc 
 
     def save(self):
-        t = Decimal(self.qtd) * Decimal(self.pr_unit)
+        qtd = str(self.qtd)
+        pr_unit = str(self.pr_unit)
+        pr_tot = Decimal(qtd) * Decimal(pr_unit)
+        t = round(pr_tot, 2)
         self.pr_tot =  t
         super().save()
-        calcula_total_entrega(self.entrega.pk)
+        #calcula_total_entrega(self.entrega.pk)
+        self.entrega.update_total()

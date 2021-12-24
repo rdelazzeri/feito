@@ -22,9 +22,9 @@ urlpatterns = [
     path('pedido_full/search/', v.pedidos_prod_search, name='pedidos_prod_search'),
     path('pedido_full/prod_selected/', v.pedido_item_add, name='pedido_item_add'),
     path('pedido_full/item_delete/', v.pedido_item_delete, name='pedido_item_delete'),
-    path('pedido_full/emite_nf/', v.pedido_emite_nf, name='pedido_emite_nf'),
+    #path('pedido_full/emite_nf/', v.pedido_emite_nf, name='pedido_emite_nf'),
     path('pedido_full/entrega_add/', v.pedido_entrega_add, name='pedido_entrega_add'),
-    path('pedido_full/testaJson/', v.pedido_testaJson, name='pedido_testaJson'),
+    #path('pedido_full/testaJson/', v.pedido_testaJson, name='pedido_testaJson'),
     #Orçamento
     path('orcamento/new/', v.orcamento_new, name='orcamento_new'),
     path('orcamento/list/', v.orcamento_list, name='orcamento_list'),
@@ -43,4 +43,5 @@ urlpatterns = [
     path('entrega/item_delete', v.entrega_item_delete, name = 'entrega_item_delete'),
     path('entrega/delete/', v.entrega_delete, name = 'entrega_delete'),
     path('entrega/pre_nota_add', v.pre_nota_add, name = 'pre_nota_add'),
+    path('entrega/pre_nota_retorno', v.pre_nota_retorno, name = 'pre_nota_retorno'),
 ]

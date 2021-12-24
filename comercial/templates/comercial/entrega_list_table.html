@@ -1,0 +1,46 @@
+
+
+
+
+<table id="entrega-list-table" class="table">
+  <thead>
+  <tr>
+    <th class="text-center" scope="col">#</th>
+    <th class="text-center" scope="col">Entrega</th>
+    <th class="text-center" scope="col">NF</th>
+    <th class="text-center" scope="col">Status</th>
+    <th class="text-center" scope="col">Operacao</th>
+    <th class="text-center" scope="col">Cliente</th>
+    <th class="text-center" scope="col">Valor da entrega</th>
+    <th class="text-center" scope="col">Data do cadastro</th>
+    <th class="text-center" scope="col">Data emissão</th>
+    <th class="text-center" scope="col">Read / Update / Delete</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for it in entregas %}
+    <tr>
+      <th class="text-center" scope="row">{{ forloop.counter }}</th>
+      <td class="text-center">{{ it.num }}</td>
+      <td class="text-center">{{ it.num_nf }}</td>
+      <td class="text-center">{{ it.status }}</td>
+      <td class="text-center">{{ it.operacao }}</td>
+      <td class="text-center">{{ it.cliente }}</td>
+      <td class="text-center">{{ it.valor_total_entrega }}</td>
+      <td class="text-center">{{ it.data_cadastro|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT"}}</td>
+      <td class="text-center">
+        <!-- open pedido full -->
+        <button type="button" id='entrega' class="entrega btn btn-sm btn-primary" data-form-url="{% url 'comercial:entrega_detail' it.pk %}" >
+          <span class="fa fa-pencil"></span>
+        </button>
+        <!-- Delete book buttons -->
+        <button type="button" class="entrega-delete btn btn-sm btn-danger" data-form-url="{% url 'comercial:entrega_delete'  %}">
+          <span class="fa fa-trash"></span>
+        </button>
+      </td>
+    </tr>
+  {% endfor %}
+
+  </tbody>
+</table>

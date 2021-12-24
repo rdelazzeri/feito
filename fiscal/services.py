@@ -5,6 +5,7 @@ from comercial.models import *
 from django.core import serializers
 import json
 from core.services import *
+from fiscal.NFe.emitirNotaFiscal import *
 
 
 def nfe_append(dict, campo, valor):
@@ -12,11 +13,16 @@ def nfe_append(dict, campo, valor):
         dict[campo] = str(valor)
     return dict    
 
+def nfe_novo_num():
+    cfg = Comercial_config.objects.get(pk=1)
+    return cfg.num_ult_nf + 1
 
 def gera_nfe(prenota_id):
-
+    print('comercial.services.gera_nfe()')
     nfe = {}
     pnf = Pre_nota.objects.get(pk=prenota_id)
+    
+
     nfe["id"] = pnf.num_nf
     nfe["operacao"] = pnf.operacao
     nfe["natureza_operacao"] = pnf.natureza_operacao
@@ -80,8 +86,11 @@ def gera_nfe(prenota_id):
         nfe_append(pr, "veiculo_usado",p.veiculo_usado)
         nfe_append(pr, "ex_ipi",p.ex_ipi)
         
+        #Classe do imposto
+        nfe_append(pr, "classe_imposto", p.classe_imposto)
+
         impostos = {}
-        if p.icms:
+        if hasattr(p, 'icms'):
             icms = {}
             nfe_append(icms, "aliquota", p.icms.aliquota)
             nfe_append(icms, "codigo_cfop", p.icms.codigo_cfop)
@@ -111,7 +120,9 @@ def gera_nfe(prenota_id):
             nfe_append(cofins, "aliquota", p.cofins.aliquota)
             impostos["cofins"] = cofins
         
-        pr["impostos"] = impostos
+        if impostos:
+            pr["impostos"] = impostos
+        
         prod.append(pr)
     if bool(prod):
         nfe["produtos"] = prod 
@@ -163,26 +174,27 @@ def gera_nfe(prenota_id):
         nfe_append(transporte, "uf_veiculo", pnf.transporte.uf_veiculo)
         nfe_append(transporte, "rntc", pnf.transporte.rntc)
         nfe_append(transporte, "seguro", pnf.transporte.seguro)
-
+    '''
     if hasattr(pnf, 'entrega'):
         entrega = {}
-        nfe_append(entrega, "cpf", pnf.entrega.cpf)
-        nfe_append(entrega, "nome_completo", pnf.entrega.nome_completo)
-        nfe_append(entrega, "cnpj", pnf.entrega.cnpj)
-        nfe_append(entrega, "razao_social", pnf.entrega.razao_social)
-        nfe_append(entrega, "ie", pnf.entrega.ie)
-        nfe_append(entrega, "endereco", pnf.entrega.endereco)
-        nfe_append(entrega, "complemento", pnf.entrega.complemento)
-        nfe_append(entrega, "numero", pnf.entrega.numero)
-        nfe_append(entrega, "bairro", pnf.entrega.bairro)
-        nfe_append(entrega, "cidade", pnf.entrega.cidade)
-        nfe_append(entrega, "uf", pnf.entrega.uf)
-        nfe_append(entrega, "cep", pnf.entrega.cep)
-        nfe_append(entrega, "telefone", pnf.entrega.telefone)
-        nfe_append(entrega, "email", pnf.entrega.email)
+        nfe_append(entrega, "cpf", pnf.local_entrega.cpf)
+        nfe_append(entrega, "nome_completo", pnf.local_entrega.nome_completo)
+        nfe_append(entrega, "cnpj", pnf.local_entrega.cnpj)
+        nfe_append(entrega, "razao_social", pnf.local_entrega.razao_social)
+        nfe_append(entrega, "ie", pnf.local_entrega.ie)
+        nfe_append(entrega, "endereco", pnf.local_entrega.endereco)
+        nfe_append(entrega, "complemento", pnf.local_entrega.complemento)
+        nfe_append(entrega, "numero", pnf.local_entrega.numero)
+        nfe_append(entrega, "bairro", pnf.local_entrega.bairro)
+        nfe_append(entrega, "cidade", pnf.local_entrega.cidade)
+        nfe_append(entrega, "uf", pnf.local_entrega.uf)
+        nfe_append(entrega, "cep", pnf.local_entrega.cep)
+        nfe_append(entrega, "telefone", pnf.local_entrega.telefone)
+        nfe_append(entrega, "email", pnf.local_entrega.email)
         if bool(entrega):
             nfe["transporte"] = entrega
-    
+    '''
+
     if bool(transporte):
            nfe["transporte"] = transporte
 
@@ -202,11 +214,35 @@ def gera_nfe(prenota_id):
         parcela  = {}
         nfe_append(parcela, "vencimento", p.vencimento)
         nfe_append(parcela, "valor", p.valor)
-        if bool(parcela):
-            parcelas["parcelas"] = parcela
+        parcelas.append(parcela)
     if bool(parcelas):
         nfe["parcelas"] = parcelas
 
-    return nfe
+    print('nfe dicionario concluído')
+
+    nfe_str = json.dumps(nfe, indent=4) 
+    print('nfe_json concluído')
+
+    # grava json na tabela para transmissão
+    try:
+        nfe_transmissao = NFe_transmissao.objects.get(pre_nota = pnf)
+        print('NFE_transmissão id: ' + str(NFe_transmissao.id))
+    except:
+        nfe_transmissao = NFe_transmissao()
+        print('Nova Nfe_transmissão')
+
+    nfe_transmissao.pre_nota = pnf
+    nfe_transmissao.num_nf = pnf.num_nf
+    nfe_transmissao.nfe_json = nfe_str
+    nfe_transmissao.save()
+
+    print('nota gravada para transmissao')
+    print('numero de caracteres na nf: ' + str(len(nfe_str)) )
+    
+    print(emitirNotaFiscal(pnf))
+
+    return 'Services concluído'
+
+
 
 

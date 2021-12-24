@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django_tables2 import SingleTableView
 from django_tables2   import RequestConfig
-from .models import Prod, Produto, Grupo, Unid, NCM
+from .models import *
 from .tables import *
 from .forms import *
 from .filters import *
@@ -101,26 +101,35 @@ def prod_search(request):
 
 
 def prod_detail(request, prod_id):
+    prod = get_object_or_404(Prod, pk=prod_id)
     if request.method == 'POST':
+        print(request.POST)
         act = request.POST['act']
+
+        print('Submit do form de produto - act: ' + str(act) + ' prod_id: ' + str(prod_id))
+
         if act == 'delete':
             pr = get_object_or_404(Prod, pk=prod_id)
             pr.delete()
             form = ProdDetailForm()
             return render(request, 'prod/prod_detail.html', {'form': form})
         elif act == 'save':
-            pr = get_object_or_404(Prod, pk=prod_id)
-            form = ProdDetailForm(request.POST, pr)
+            print('act=save')
+            #pr = get_object_or_404(Prod, pk=prod_id)
+            form = ProdDetailForm(request.POST, instance = prod)
             if form.is_valid():
-                form = ProdDetailForm(form.cleaned_data)
+                print('form is valid')
+                #form = ProdDetailForm(form.cleaned_data)
                 form.save()
             return render(request, 'prod/prod_detail.html', {'form': form})
         elif act =='composition':
             return redirect('prod:prod_comp', prod_id)
     else:
         instance = get_object_or_404(Prod, pk=prod_id)
+        print(instance)
         form = ProdDetailForm(request.POST or None, instance=instance)
-        return render(request, 'prod/prod_detail.html', {'form': form})
+        print(form)
+        return render(request, 'prod/prod_detail.html', {'form': form, 'prod_id':prod_id})
 
     
 
