@@ -12,14 +12,6 @@ class Unid(models.Model):
     def __str__(self):
         return self.unid
 
-class Grupo(models.Model):
-    cod = models.CharField("Código", max_length=15)
-    desc = models.CharField("Descrição", max_length=40)
-    cod_cyber = models.IntegerField()
-
-    def __str__(self):
-        return self.desc
-
 class NCM(models.Model):
     cod = models.CharField("NCM", max_length=12)
     desc = models.CharField("Descrição", max_length=40)
@@ -35,24 +27,42 @@ class OrigemFiscal(models.Model):
         return self.cod
 
 class TipoProduto(models.Model):
-    cod = models.CharField("Tipo de Produto", max_length=12)
+    cod = models.CharField("Tipo de Produto", max_length=4)
     desc = models.CharField("Descrição", max_length=40)
 
     def __str__(self):
-        return self.cod
+        return self.cod + ' - ' + self.desc
+
+class Grupo(models.Model):
+    cod = models.CharField("Código", max_length=4)
+    desc = models.CharField("Descrição", max_length=40)
+    cod_cyber = models.IntegerField()
+
+    def __str__(self):
+        return self.desc
+
+class SubGrupo(models.Model):
+    cod = models.CharField("Código", max_length=4)
+    desc = models.CharField("Descrição", max_length=40)
+    cod_cyber = models.IntegerField()
+
+    def __str__(self):
+        return self.desc
 
 #Produto
 class Prod(models.Model):
-    cod = models.CharField("Código", max_length=15, unique=True)
+    cod = models.CharField("Código", max_length=20, unique=True)
     desc = models.CharField("Descrição", max_length=50)
     compl = models.CharField("Complemento",
                              max_length=50,
                              blank=True,
                              null=True)
-    grupo = models.ForeignKey(Grupo, on_delete = CASCADE)
+    tipoProduto = models.ForeignKey(TipoProduto, on_delete = PROTECT, blank=True, null=True)
+    grupo = models.ForeignKey(Grupo, on_delete = PROTECT, blank=True, null=True)
+    subGrupo = models.ForeignKey(SubGrupo, on_delete = PROTECT, blank=True, null=True)
     grupoCyber = models.IntegerField(blank=True, null=True)
-    unid = models.ForeignKey(Unid, related_name='unid1', on_delete = CASCADE)
-    unid2 = models.ForeignKey(Unid, related_name='unid2',on_delete = CASCADE, blank=True, null=True)
+    unid = models.ForeignKey(Unid, related_name='unid1', on_delete = PROTECT)
+    unid2 = models.ForeignKey(Unid, related_name='unid2',on_delete = PROTECT, blank=True, null=True)
     fatorUnid = models.DecimalField(
         max_digits=15,
         decimal_places=3,
@@ -61,7 +71,6 @@ class Prod(models.Model):
         blank=True, null=True
         )
     unidCyber = models.CharField(max_length=4, blank=True, null=True)
-    tipoProduto = models.ForeignKey(TipoProduto, on_delete = CASCADE, blank=True, null=True)
     pLiq = models.DecimalField(
         max_digits=15,
         decimal_places=3,
@@ -135,7 +144,7 @@ class Prod(models.Model):
         blank=True, null=True
         )
     #Impostos
-    origemFiscal = models.ForeignKey(OrigemFiscal, on_delete = CASCADE, blank=True, null=True)
+    origemFiscal = models.ForeignKey(OrigemFiscal, on_delete = PROTECT, default=1, blank=True, null=True)
     ipiCompra = models.DecimalField(
         max_digits=4,
         decimal_places=2,
@@ -169,6 +178,7 @@ class Prod(models.Model):
     origFiscal = models.CharField(
         "Origem Fiscal",
         max_length=2,
+        default='0',
         blank=True, null=True
         )
     tipoTributacao = models.CharField(
@@ -214,45 +224,3 @@ class ProdComp(models.Model):
         
     def get_comp_name(self):
         return self.codComp.desc
-
-#Obsoleto
-class Produto(models.Model):
-    importado = models.BooleanField(default=False)
-    ncm = models.CharField('NCM', max_length=8)
-    produto = models.CharField(max_length=100, unique=True)
-    preco = models.DecimalField('preço', max_digits=7, decimal_places=2)
-    estoque = models.IntegerField('estoque atual')
-    estoque_minimo = models.PositiveIntegerField('estoque mínimo', default=0)
-    data = models.DateField(null=True, blank=True)
-    categoria = models.ForeignKey(
-        'Categoria',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        ordering = ('produto',)
-
-    def __str__(self):
-        return self.produto
-
-    def get_absolute_url(self):
-        return reverse_lazy('produto:produto_detail', kwargs={'pk': self.pk})
-
-    def to_dict_json(self):
-        return {
-            'pk': self.pk,
-            'produto': self.produto,
-            'estoque': self.estoque,
-        }
-
-
-class Categoria(models.Model):
-    categoria = models.CharField(max_length=100, unique=True)
-
-    class Meta:
-        ordering = ('categoria',)
-
-    def __str__(self):
-        return self.categoria

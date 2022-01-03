@@ -1,21 +1,176 @@
-<head>
-    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.css' %}">
-</head>
-
 {% extends "base.html" %}
-
 {% load render_table from django_tables2 %}
 
+
 {% block content %}
-<div class="page-header">
-    <h2><i class="fa fa user"></i>Lista de Produtos</h2>
-    {% render_table table %}
+
+{% include "comercial/_modal.html" %}
+<div class="container-fluid mt-1">
+  <div class="row">
+    <div class="col">
+      <h4>
+        <strong>Lista de Pedidos</strong>
+      </h4>
+      
+      <div class="row">
+        <div class="col-12 mb-3">
+          <button id="create-pedido-sync" class="btn btn-primary" type="button" name="button">
+            <span class="fa fa-plus mr-2"></span>Novo pedido (Sinc)
+          </button>
+          <button id="create-pedido-async" class="btn btn-primary" type="button" name="button">
+            <span class="fa fa-plus mr-2"></span>Novo pedido Asynchronous
+          </button>
+          <button id="filter-pedido" class="filter-pedido btn btn-primary" type="button" name="button" data-form-url="{% url 'comercial:pedido_filter' %}">
+            <span class="fa fa-filter mr-2"></span>Filtrar pedidos
+          </button>
+        </div>
+
+        <div class="col-12 mb-3">
+        {% if 'type' in request.GET %}
+          <p class="filtered-books">Filtered books.</p>
+        {% endif %}
+        {% include "comercial/_pedidos_table.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="{% static 'assets/js/bootstrap.js' %}"></script>
-<script src="{% static 'assets/js/jquery.js' %}"></script>
-<script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
-<!-- You can alternatively load the minified version -->
-<script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+
+
 
 {% endblock content %}
+
+{% block extrascripts %}
+
+<script type="text/javascript">
+  $(".pedido-full").click(function(){ 
+  var url = $(this).attr('data-form-url');
+  console.log(url);
+  window.open(url, '_blank');
+})
+</script>
+
+  <script type="text/javascript">
+
+      $(function () {
+          // Create pedido synchronous
+          function createBookSyncModalForm() {
+            $("#create-pedido-sync").modalForm({
+                formURL: "{% url 'comercial:pedido_create' %}",
+                modalID: "#create-modal"
+            });
+          }
+          createBookSyncModalForm();
+
+          // Create pedido asynchronous button
+          // message
+          var asyncSuccessMessageCreate = [
+            "<div ",
+            "style='position:fixed;top:0;z-index:10000;width:100%;border-radius:0;' ",
+            "class='alert alert-icon alert-success alert-dismissible fade show mb-0' role='alert'>",
+            "Success: pedido was created.",
+            "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>",
+            "<span aria-hidden='true'>&times;</span>",
+            "</button>",
+            "</div>",
+            "<script>",
+            "$('.alert').fadeTo(2000, 500).slideUp(500, function () {$('.alert').slideUp(500).remove();});",
+            "<\/script>"
+          ].join("");
+
+          // modal form
+          function createBookAsyncModalForm() {
+            $("#create-pedido-async").modalForm({
+                formURL: "{% url 'comercial:pedido_create' %}",
+                modalID: "#create-modal",
+                asyncUpdate: true,
+                asyncSettings: {
+                  closeOnSubmit: true,
+                  successMessage: asyncSuccessMessageCreate,
+                  dataUrl: "pedidos",
+                  dataElementId: "#pedidos-table",
+                  dataKey: "table",
+                  addModalFormFunction: reinstantiateModalForms
+                }
+            });
+          }
+          createBookAsyncModalForm();
+
+          // Update pedido asynchronous button
+          // message
+          var asyncSuccessMessageUpdate = [
+            "<div ",
+            "style='position:fixed;top:0;z-index:10000;width:100%;border-radius:0;' ",
+            "class='alert alert-icon alert-success alert-dismissible fade show mb-0' role='alert'>",
+            "Success: pedido was updated.",
+            "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>",
+            "<span aria-hidden='true'>&times;</span>",
+            "</button>",
+            "</div>",
+            "<script>",
+            "$('.alert').fadeTo(2000, 500).slideUp(500, function () {$('.alert').slideUp(500).remove();});",
+            "<\/script>"
+          ].join("");
+
+          // modal form
+          function updateBookModalForm() {
+            $(".update-pedido").each(function () {
+              $(this).modalForm({
+                formURL: $(this).data("form-url"),
+                asyncUpdate: true,
+                asyncSettings: {
+                  closeOnSubmit: false,
+                  successMessage: asyncSuccessMessageUpdate,
+                  dataUrl: "pedidos",
+                  dataElementId: "#pedidos-table",
+                  dataKey: "table",
+                  addModalFormFunction: reinstantiateModalForms
+                }
+              });
+            });
+          }
+          updateBookModalForm();
+
+          
+
+          
+
+
+
+
+            // Delete pedido buttons - formURL is retrieved from the data of the element
+          function deleteBookModalForm() {
+            $(".delete-pedido").each(function () {
+                $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+            });
+          }
+          deleteBookModalForm();
+
+          // Read pedido buttons
+          function readBookModalForm() {
+            $(".read-pedido").each(function () {
+                $(this).modalForm({formURL: $(this).data("form-url")});
+            });
+          }
+          readBookModalForm();
+
+          function reinstantiateModalForms() {
+            createBookAsyncModalForm();
+            readBookModalForm();
+            updateBookModalForm();
+            deleteBookModalForm();
+          }
+
+          // Filter books button
+          $("#filter-pedido").each(function () {
+              $(this).modalForm({formURL: $(this).data("form-url")});
+          });
+
+          // Hide message
+          $(".alert").fadeTo(2000, 500).slideUp(500, function () {
+              $(".alert").slideUp(500);
+          });
+      });
+  </script>
+{% endblock extrascripts %}

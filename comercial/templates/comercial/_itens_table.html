@@ -1,0 +1,52 @@
+{{ formset.management_form }}
+<table id="pedido-itens-table" class="table">
+    <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Código</th>
+      <th class="text-center" scope="col">Descrição</th>
+      <th class="text-center" scope="col">Quantidade</th>
+      <th class="text-center" scope="col">Unidade</th>
+      <th class="text-center" scope="col">Preço Unit.</th>
+      <th class="text-center" scope="col">Valor Total</th>
+      <th class="text-center" scope="col">Qtd Entregue</th>
+      <th class="text-center" scope="col">Valor Faturado</th>
+      <th class="text-center" scope="col">Saldo Qtd.</th>
+      <th class="text-center" scope="col">Saldo R$</th>
+      <th class="text-center" scope="col">Read / Update / Delete</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for ped_it in formset %}
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center">{{ ped_it.cod }}</td>
+        <td class="text-center">{{ ped_it.desc }}</td>
+        <td class="text-center">{{ ped_it.qtd }}</td>
+        <td class="text-center">{{ ped_it.unid }}</td>
+        <td class="text-center">{{ ped_it.pr_unit}}</td>
+        <td class="text-center">{{ ped_it.pr_tot }}</td>
+        <td class="text-center">{{ ped_it.qtd_entregue }}</td>
+        <td class="text-center">{{ ped_it.val_entregue }}</td>
+        <td class="text-center">{{ ped_it.qtd_saldo }}</td>
+        <td class="text-center">{{ ped_it.valor_saldo }}</td>
+        <td class="text-center">
+          <!-- Update book buttons -->
+          <button type="submit" class="btn btn-sm btn-primary" >
+            <span class="fa fa-pencil"></span>
+          </button>
+          <!-- Delete book buttons -->
+          <button type="button" class="delete-item btn btn-sm btn-danger" >
+            <span class="fa fa-trash"></span>
+          </button>
+        </td>
+        <div id="divCheckbox" style="display: none;">        
+          <td style="display: none;" >{{ ped_it.item_id }}</td>
+        </div>
+      </tr>
+    {% endfor %}
+  </tbody>
+
+    
+
+  </table>

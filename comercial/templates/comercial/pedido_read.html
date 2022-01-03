@@ -1,0 +1,42 @@
+{% load widget_tweaks %}
+
+<div class="modal-header">
+  <h3 class="modal-title">Pedido de venda</h3>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body">
+
+  <div class="">
+    Número:
+    {{ pedido.num }}
+  </div>
+  <div class="">
+    Cliente:
+    {{ pedido.cliente }}
+  </div>
+  <div class="">
+    Data Cadastro:
+    {{ pedido.data_cadastro }}
+    €
+  </div>
+  <div class="">
+    Previsão de entrega:
+    {{ pedido.data_previsao }}
+  </div>
+  <div class="">
+    Frete:
+    {{ pedido.tipo_frete}}
+  </div>
+  <div class="">
+    Observações:
+    {{ pedido.obs }}
+  </div>
+
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+</div>

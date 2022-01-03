@@ -1,0 +1,23 @@
+
+<table id="prod-table" class="table">
+    <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">ID</th>
+      <th class="text-center" scope="col">Código</th>
+      <th class="text-center" scope="col">Descrição</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for prod in prods %}
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center codSelect">{{ prod.id }}</td>
+        <td class="text-center codSelect">{{ prod.cod }}</td>
+        <td class="text-left">{{ prod.desc }}</td>
+        <td><button class="btnSelect btn btn-primary">Select</button></td>
+        
+      </tr>
+    {% endfor %}
+    </tbody>
+</table>

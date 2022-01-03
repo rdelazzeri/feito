@@ -15,10 +15,12 @@ class SearchProdForm(forms.Form):
     desc = forms.CharField(max_length=254, label='Descrição', required=False)
 
 class ProdDetailForm(ModelForm):
-     class Meta:
-         model = Prod
-         fields = '__all__'
-         
+
+    class Meta:
+        model = Prod
+        fields = '__all__'
+        exclude = ('codigoProd',)
+
 class ProdCompForm(forms.ModelForm):
     cod = forms.CharField(max_length=30, label='Código', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '8'}))
     desc = forms.CharField(max_length=60, label='Componente', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '60'}))

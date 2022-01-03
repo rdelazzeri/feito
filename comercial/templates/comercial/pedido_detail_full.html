@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% include "comercial/_modal.html" %}
+
+<div class="jumbotron">
+    <form method="post" id="form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <h1>Pedido de Vendas</h1>
+            </div>
+            <div class="form-group col-md-6 mb-0">
+                <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
+                <a href="/com/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/com/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <button type="submit" name="act" value="delete" class="btn btn-primary">Deletar</button>
+                <button type="button" name="nfe" id="entrega-add" class="btn btn-primary">Gerar Entrega</button>
+
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4 mb-0">
+                {{ form.num|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.status|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.operacao|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-8 mb-0">
+                {{ form.cliente|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.vencimentos|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.data_cadastro|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.data_previsao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.tipo_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.transportadora|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.valor_total_pedido|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.valor_total_entregue|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.valor_total_saldo|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {% if form.saldo %}
+                    {{ form.saldo|as_crispy_field }}
+                {% endif %}   
+            </div>
+
+        <div class="form-row"></div>
+            <div class="form-group col-md-2 mb-0">
+                <button id="modalFeito" class="btn btn-primary" >Pesquisar produtos</button>
+            </div>
+        </div>
+
+        <div id="pedido-itens">
+            {% include "comercial/_itens_table.html" %}
+        </div>
+        
+
+        <div class="form-row"></div>
+            <div class="form-group col-md-12 mb-0">
+                {{ form.obs|as_crispy_field }}
+            </div>
+        </div>
+       
+    </form>
+
+    <div id="pedido-id">{{ pedido_id }}</div>
+
+    <div id="prod-selected"></div>
+</div>
+
+
+{% include "comercial/prod_search.html" %}
+
+{% endblock content %}
+
+{% block extrascripts %}
+
+<script>
+
+$(function () {
+    $("#modalFeito").click(function(event){
+        event.preventDefault();
+        $("#pesquisa-prod").modal('show');
+    })
+
+    $("#pesquisar").click(function(event){
+        var pesq = $("#pesquisa").val();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pedidos_prod_search' %}",
+            data: {"pesquisa": pesq},
+            success: function(result){
+                $("#prod-tab").html(result) 
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    })
+    $("#prod-tab").on("click", ".btnSelect", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var prod = currentRow.find("td:eq(0)").text();
+        var pedido_id = $("#pedido-id").text();
+        $.ajax({    
+            type: "GET",
+            url: "{% url 'comercial:pedido_item_add' %}",
+            data: {"produto": prod, "pedido": pedido_id},
+            success: function(result){
+                location.reload();
+                $("#pesquisa-prod").modal('toggle'); 
+            },
+            error: function(error){
+                alert(error)
+            }
+        });
+    })
+    $("#pedido-itens").on("click", ".delete-item", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var item_id = currentRow.find("td:eq(10) input").val();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pedido_item_delete' %}",
+            data: {"item_id": item_id},
+            success: function(result){
+                location.reload();
+            },
+            error: function(error){
+                alert("Não foi possivel completar o processo")
+            }
+        });
+    })  
+    $("#entrega-add").click(function(event){
+        var pedido_id = $("#pedido-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pedido_entrega_add' %}",
+            data: {"pedido_id": pedido_id},
+            success: function(result){
+                entrega=JSON.stringify(result);
+                alert("Entrega criada com sucesso. Num: " + entrega)
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    })
+})
+
+
+
+
+
+
+
+</script>
+
+{% endblock extrascripts %}

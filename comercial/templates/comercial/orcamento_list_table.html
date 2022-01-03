@@ -1,0 +1,57 @@
+
+
+
+
+<table id="orcamento-list-table" class="table">
+  <thead>
+  <tr>
+    <th class="text-center" scope="col">#</th>
+    <th class="text-center" scope="col">Número</th>
+    <th class="text-center" scope="col">Status</th>
+    <th class="text-center" scope="col">Operacao</th>
+    <th class="text-center" scope="col">Cliente</th>
+    <th class="text-center" scope="col">Num. sol. cliente</th>
+    <th class="text-center" scope="col">Data Cadastro</th>
+    <th class="text-center" scope="col">Previsão de entrega</th>
+    <th class="text-center" scope="col">Valor</th>
+    <th class="text-center" scope="col">Obs</th>
+    <th class="text-center" scope="col">Read / Update / Delete</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for orc in orcamentos %}
+    <tr>
+      <th class="text-center" scope="row">{{ forloop.counter }}</th>
+      <td class="text-center">{{ orc.num_orc }}</td>
+      <td class="text-center">{{ orc.status }}</td>
+      <td class="text-center">{{ orc.operacao }}</td>
+      <td class="text-center">{{ orc.cliente }}</td>
+      <td class="text-center">{{ orc.num_orc_cli }}</td>
+      <td class="text-center">{{ orc.data_cadastro|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ orc.data_previsao|date:"SHORT_DATE_FORMAT"}}</td>
+      <td class="text-center">{{ orc.valor_total_orcamento }}</td>
+      
+      <td class="clamp">{{ orc.obs }}</td>
+      <td class="text-center">
+        <!-- Read book buttons -->
+        <button type="button" class="read-pedido btn btn-sm btn-primary" data-form-url="{% url 'comercial:pedido_read' orc.pk %}">
+          <span class="fa fa-eye"></span>
+        </button>
+        <!-- Update book buttons -->
+        <button type="button" class="update-pedido btn btn-sm btn-primary" data-form-url="{% url 'comercial:pedido_update' orc.pk %}">
+          <span class="fa fa-pencil"></span>
+        </button>
+        <!-- open pedido full -->
+        <button type="button" id='orcamento' class="orcamento btn btn-sm btn-primary" data-form-url="{% url 'comercial:orcamento_detail' orc.pk %}" >
+          <span class="fa fa-pencil"></span>
+        </button>
+        <!-- Delete book buttons -->
+        <button type="button" class="orcamento-delete btn btn-sm btn-danger" data-form-url="{% url 'comercial:orcamento_delete'  %}">
+          <span class="fa fa-trash"></span>
+        </button>
+      </td>
+    </tr>
+  {% endfor %}
+
+  </tbody>
+</table>

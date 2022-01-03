@@ -1,0 +1,30 @@
+
+<table id="prod-table" class="table">
+    <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Pedido</th>
+      <th class="text-center" scope="col">Código</th>
+      <th class="text-center" scope="col">Descrição</th>
+      <th class="text-center" scope="col">Uni</th>
+      <th class="text-center" scope="col">Saldo Qtd</th>
+      <th class="text-center" scope="col">Saldo R$</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for prod in prods %}
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center codSelect">{{ prod.pedido }}</td>
+        <td class="text-center codSelect">{{ prod.produto.cod }}</td>
+        <td class="text-center codSelect">{{ prod.produto.desc }}</td>
+        <td class="text-center codSelect">{{ prod.produto.unid.unid }}</td>
+        <td class="text-left">{{ prod.qtd_saldo }}</td>
+        <td class="text-left">{{ prod.valor_saldo }}</td>
+        <td><button class="btnSelect btn btn-primary">Select</button></td>
+        <td class="text-left">{{ prod.pedido_item.id }}</td>
+        
+      </tr>
+    {% endfor %}
+    </tbody>
+</table>

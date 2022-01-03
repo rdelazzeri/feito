@@ -18,22 +18,26 @@
             </div>
         </div>
         <div class="form-row">
-            <div class="form-group col-md-4 mb-0">
-                {{ form.cod|as_crispy_field }}
+            <div class="form-group col-md-3 mb-0">
+                {{ form.tipoProduto|as_crispy_field }}
             </div>
-            <div class="form-group col-md-8 mb-0">
-                {{ form.desc|as_crispy_field }}
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-md-4 mb-0">
-                {{ form.compl|as_crispy_field }}
-            </div>
-            <div class="form-group col-md-5 mb-0">
+            <div class="form-group col-md-3 mb-0">
                 {{ form.grupo|as_crispy_field }}
             </div>
             <div class="form-group col-md-3 mb-0">
-                {{ form.tipoProduto|as_crispy_field }}
+                {{ form.subGrupo|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.cod|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+
+            <div class="form-group col-md-8 mb-0">
+                {{ form.desc|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.compl|as_crispy_field }}
             </div>
         </div>
         <div class="form-row">
