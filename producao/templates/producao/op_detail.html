@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <form method="post" id="form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <h1>Ordem de produção</h1 >
+            </div>
+
+            <div class="form-group col-md-6 mb-0">
+                <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
+                <a href="/pr/op/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/pr/op/list"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <button type="button" id="delete" class="btn btn-primary">Deletar</button>
+                <button type="button" name="nfe" id="gera-pedido" class="btn btn-primary">Gera pedido</button>
+            </div>
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-group col-md-2 mb-0">
+                {{ form.num|as_crispy_field }}
+            </div>
+
+            <div class="form-group col-md-2 mb-0 ">
+                {{ form.data_emissao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.data_previsao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.tempo_estimado|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.tempo_realizado|as_crispy_field }}
+            </div>
+
+        </div>
+
+        <div class="form-row">
+ 
+            <div class="form-group col-md-6 mb-0">
+                {{ form.produto|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0 " >
+                {{ form.qtd_programada|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.qtd_realizada|as_crispy_field }}
+            </div>
+
+
+        </div>
+
+        <div class="form-row">    
+
+            <div class="form-group col-md-3 mb-0 " >
+                {{ form.momento_ini|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.momento_fim|as_crispy_field }}
+            </div>
+
+            <div class="form-group col-md-3 mb-0">
+                {{ form.setor_produtivo|as_crispy_field }}
+            </div>
+
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                <button type="button" class="btn btn-primary btn-search-prod" value="CO">Pesquisar Componentes</button>
+            </div>
+        </div>
+
+        <div id="op_comp_fis_table">
+            {% include "producao/op_comp_fis_table.html" %}
+        </div>
+
+
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+
+                <button type="button" class="btn btn-primary btn-search-prod" value="SI">Pesquisar Serviços</button>
+            </div>
+        </div>
+
+        <div id="op_comp_fis_table">
+            {% include "producao/op_comp_serv_int_table.html" %}
+        </div>
+
+
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                <button type="button" class="btn btn-primary btn-search-prod" value="SE">Pesquisar Serviços</button>
+            </div>
+        </div>
+
+        <div id="op_comp_fis_table">
+            {% include "producao/op_comp_serv_ext_table.html" %}
+        </div>
+
+
+
+        <div class="form-row" >
+            <div class="form-group col-md-12 mb-0">
+                <div id="fr-id">{{ id }}</div>
+            </div>
+        </div>
+        
+    </form>
+
+
+       
+    {% for error_field, error_message in form.errors.items %}
+        <div class="alert alert-primary" role="alert"></div>
+            <p>{{ error_field|striptags }}: {{ error_message|striptags }}</p>
+        </div>
+    {% endfor %}
+      
+        
+    
+
+</div>
+
+
+
+{% include "prod/produto_search.html" %}
+
+ 
+{% endblock content %}
+
+
+{% block extrascripts %}
+
+
+{{ form.media }}
+
+
+
+
+<script>
+    var tipoProduto = ""
+    jQuery.noConflict()(".btn-search-prod").click(function(){
+        tipoProduto = $(this).val()
+        $("#pesquisa-prod").modal();
+    })
+
+</script>
+
+<script>
+(function ($) {
+
+    jQuery.noConflict()("#pesquisar").click(function(event){
+        var pesq = $("#pesquisa").val();   
+        $.ajax({
+            type: "GET",
+            url: "{% url 'prod:produto_search' %}",
+            data: {"pesquisa": pesq, "tipo": tipoProduto},
+            success: function(result){
+                $("#prod-tab").html(result) 
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    });
+
+    jQuery.noConflict()("#prod-tab").on("click", ".btnSelect", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var prod = currentRow.find("td:eq(0)").text();
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'producao:op_comp_fis_add' %}",
+            data: {"produto": prod, "id": fr_id, "tipo": tipoProduto},
+            success: function(result){
+                location.reload();
+                $("#pesquisa-prod").modal('toggle'); 
+            },
+            error: function(error){
+                alert(error)
+            }
+        });
+    });
+
+    jQuery.noConflict()(".itens-table").on("click", ".delete-item", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var item_id = currentRow.find("td:eq(0) input").val();
+        var source = currentRow.find("td:eq(1) input").val();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'producao:op_delitem' %}",
+            data: {"item_id": item_id, "source": source , csrfmiddlewaretoken: '{{ csrf_token }}'},
+            success: function(result){
+                location.reload();
+            },
+            error: function(error){
+                alert("Não foi possivel completar o processo")
+            }
+        });
+    }); 
+
+    jQuery.noConflict()("#delete").click(function(event){
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_delete' %}",
+            data: {"id": fr_id},
+            success: function(result){
+                alert("Nota Excluído com sucesso")
+            },
+            error: function(error){
+                alert("A Nota não pode ser excluído")
+            }
+        })
+    })
+
+
+})($)
+</script>
+
+
+
+
+
+
+{% endblock extrascripts %}

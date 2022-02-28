@@ -13,6 +13,7 @@ from .tables import Parc_table
 #from util.query import qr_and_or
 from .models import Municipio, Estado
 from .services import *
+from dal import autocomplete
 
 
 class CadView(generic.ListView):
@@ -20,8 +21,8 @@ class CadView(generic.ListView):
     model = Parceiro
 
 def lista(request):
-    parc = Parc_table(Parceiro.objects.all())
-    RequestConfig(request, paginate={'per_page': 10}).configure(parc)
+    parc = Parc_table(Parceiro.objects.all().order_by('nome'))
+    RequestConfig(request, paginate={'per_page': 200}).configure(parc)
     return render(request, 'cadastro/lista.html', {'parc': parc})
 
 def detalhe(request, id):
@@ -39,15 +40,28 @@ def detalhe(request, id):
 def load_cities(request):
     estado_id = request.GET.get('estado')
     municipios = Municipio.objects.filter(estado=estado_id).order_by('nome')
-    print(estado_id)
-    print(municipios)
     return render(request, 'cadastro/lista_cidades.html', {'municipios': municipios})
     
 
+class NomeAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        print('nome-autocomplete')
+        if not self.request.user.is_authenticated:
+            return Parceiro.objects.none()
+        qs = Parceiro.objects.only('nome')
+        if self.q:
+            qs = qs.filter(nome__icontains=self.q)
+        return qs
 
-
-
-
+class TransportadoraAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        print('transportadora-autocomplete')
+        if not self.request.user.is_authenticated:
+            return Parceiro.objects.none()
+        qs = Parceiro.objects.filter(tipo__sigla = 'T').only('nome')
+        if self.q:
+            qs = qs.filter(nome__icontains=self.q)
+        return qs
 
 
 def importMuni(request):

@@ -3,9 +3,11 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+
+from financeiro.models import Conta_receber, Vencimento
 #from django_tables2 import SingleTableView
 #from django_tables2   import RequestConfig
-from .models import *
+from .models import  Orcamento, Orcamento_item, Pedido, Pedido_item, Comercial_config, Entrega, Entrega_item, Entrega_parcelas
 from .tables import *
 from .forms import *
 #from .filters import *
@@ -37,7 +39,9 @@ from bootstrap_modal_forms.generic import (
     BSModalUpdateView,
     BSModalReadView,
     BSModalDeleteView
-)
+) 
+
+
 
 class Pedido_filter(BSModalFormView):
     template_name = 'comercial/pedido_filter.html'
@@ -135,6 +139,7 @@ def orcamento_new(request):
             print(form)
             return render(request, 'comercial/orcamento_detail.html', {'form': form})     
     else:
+        print('orcamento_new 10')
         new = Orcamento()
         cfg = Comercial_config.objects.get(pk=1)
         new.num_orc = cfg.num_ult_orcamento + 1
@@ -549,48 +554,56 @@ def entrega_detail(request, entrega_id):
         print('é post')
         #verifica se já existe uma nota emitida e aprovada
         pre_nota = Pre_nota.objects.filter(entrega = entrega).first()
-        print('pre_nota: ' + str(pre_nota.id))
-        ret = NFe_transmissao.objects.filter(pre_nota = pre_nota).first()
-        print('status da transmissao: ' + str(ret.status))
+        
+        if pre_nota:
+            print('pre_nota: ' + str(pre_nota.count()))
+            ret = NFe_transmissao.objects.filter(pre_nota = pre_nota).first()
+            print('status da transmissao: ' + str(ret.status))
 
-        if ret.erro():
-            print('NFe não aprovada')
-            form = EntregaDetailForm(request.POST, instance = entrega)
-            formset = entrega_itens_formset(request.POST)
-            #print(formset)
-            if form.is_valid():
-                print('form is valid')
-                if formset.is_valid():
-                    print('formset is valid')
-                    entrega = form.save(commit=False)
-                    entrega.save()
-                    for it in formset:
-                        if id:
-                            new_qtd = it.cleaned_data.get('qtd')
-                            item_id = it.cleaned_data.get('item_id')
-                            codigo = item_id
-                            print(it.cleaned_data)
-                            if item_id:
-                                itens_data = Entrega_item.objects.get(pk=item_id)
-                                itens_data.qtd = new_qtd
-                                itens_data.pr_unit = it.cleaned_data.get('pr_unit')
-                                #atualiza NCM do produto direto da tela da entrega
-                                #tem que digitar o código correspondente na tabela
-                                try:
-                                    print('entrei no try do ncm')
-                                    ncm_cod = it.cleaned_data.get('ncm')
-                                    print(ncm_cod)
-                                    ncm = NCM.objects.get(cod = ncm_cod)
-                                    print(ncm.desc)
-                                    itens_data.produto.ncm = ncm
-                                except:
-                                    pass
-                                itens_data.save()
-                                itens_data.produto.save()
+            if ret.erro():
+                print('NFe não aprovada')
+        form = EntregaDetailForm(request.POST, instance = entrega)
+        formset = entrega_itens_formset(request.POST)
+        #print(formset)
+        if form.is_valid():
+            print('form is valid')
+            if formset.is_valid():
+                print('formset is valid')
+                entrega = form.save(commit=False)
+                entrega.save()
+                for it in formset:
+                    if id:
+                        new_qtd = it.cleaned_data.get('qtd')
+                        item_id = it.cleaned_data.get('item_id')
+                        codigo = item_id
+                        print(it.cleaned_data)
+                        if item_id:
+                            itens_data = Entrega_item.objects.get(pk=item_id)
+                            itens_data.qtd = new_qtd
+                            itens_data.pr_unit = it.cleaned_data.get('pr_unit')
+                            #atualiza NCM do produto direto da tela da entrega
+                            #tem que digitar o código correspondente na tabela
+                                                            
+                            ncm_cod = it.cleaned_data.get('ncm')
+                            print(ncm_cod)
 
-                    return redirect('comercial:entrega_detail', entrega.id)
-                else:
-                    print(formset.non_form_errors())
+                            try:
+                                print('entrei no try do ncm')
+                                ncm = NCM.objects.get(cod = ncm_cod)
+                                print(ncm.cod)
+                                itens_data.produto.ncm = ncm
+                            except:
+                                ncm = NCM()
+                                ncm.cod = ncm_cod
+                                ncm.save()
+                                itens_data.produto.ncm = ncm
+
+                            itens_data.save()
+                            itens_data.produto.save()
+
+                return redirect('comercial:entrega_detail', entrega.id)
+            else:
+                print(formset.non_form_errors())
                 
     
     form = EntregaDetailForm(instance  = entrega)
@@ -710,6 +723,7 @@ def pre_nota_add(request):
 
         pnf.num_nf = num_nf
         pnf.operacao = entrega.operacao.tipo
+        pnf.data_emissao = entrega.data_emissao
         pnf.natureza_operacao = entrega.operacao.natureza_operacao
         pnf.modelo = '1' # 1 - NF-e - 2 - NFC-e
         pnf.finalidade = entrega.operacao.finalidade
@@ -899,12 +913,22 @@ def pre_nota_add(request):
 
         parcelas = Entrega_parcelas.objects.filter(entrega=entrega)
         Pre_nota_parcelas.objects.filter(pre_nota=pnf).delete()
-        for parcela in parcelas:
+        Conta_receber.objects.filter(entrega = entrega).delete()
+        for i, parcela in enumerate(parcelas):
             pnf_parcela = Pre_nota_parcelas()
             pnf_parcela.pre_nota = pnf
             pnf_parcela.vencimento = parcela.vencimento.strftime('%Y-%m-%d')
             pnf_parcela.valor = parcela.valor_parcela
             pnf_parcela.save()
+            cr = Conta_receber()
+            cr.entrega = entrega
+            cr.data_emissao = pnf.data_emissao
+            cr.parcela_num = str(pnf.num_nf) + str(i)
+            cr.vencimento = parcela.vencimento
+            cr.valor_parcela = parcela.valor_parcela
+            cr.conta_caixa = entrega.operacao.conta_caixa
+            cr.save()
+            
 
     print('Nota fiscal pronta para ser gerada')
     print(gera_nfe(pnf.id))

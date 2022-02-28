@@ -1,15 +1,11 @@
 from django.contrib import admin
-from .models import Orcamento, Orcamento_item, Orcamento_origem, Orcamento_status, Pedido, Operacao, Vencimento, Pedido_item, Comercial_config, Entrega, Entrega_item, Entrega_parcelas
+from .models import Orcamento, Orcamento_item, Orcamento_origem, Orcamento_status, Pedido, Operacao, Pedido_item, Comercial_config, Entrega, Entrega_item, Entrega_parcelas
 
 @admin.register(Pedido)
 class GrupoAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(Operacao)
-class GrupoAdmin(admin.ModelAdmin):
-    pass
-
-@admin.register(Vencimento)
 class GrupoAdmin(admin.ModelAdmin):
     pass
 

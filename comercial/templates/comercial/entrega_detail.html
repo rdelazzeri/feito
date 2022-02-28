@@ -197,7 +197,27 @@ $(function () {
                 alert("Não foi possivel completar o processo")
             }
         });
-    }); 
+    });
+    
+    function retorno() {
+        var entrega_id = $("#entrega-id").text();
+        alert("buscando dados de retorno");
+        $.ajax({
+            type: "GET",
+            url: "{% url 'comercial:pre_nota_retorno' %}",
+            data: {"entrega_id": entrega_id},
+            success: function(result){
+                alert("Dados de retorno obtidos com sucesso");
+                $(".modal-content").html(result);
+                jQuery.noConflict(); 
+                $("#create-modal").modal('toggle');
+                alert(result) 
+                },
+            error: function(error){
+                    alert("não foi possível visualizar o retorno")
+                },
+        })
+    }
 
     $("#prenota-add").click(function(event){
         var entrega_id = $("#entrega-id").text();
@@ -206,7 +226,7 @@ $(function () {
             url: "{% url 'comercial:pre_nota_add' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-                alert(result)
+                retorno()
             },
             error: function(error){
                 alert("não foi possível criar a pré nota")
@@ -214,18 +234,24 @@ $(function () {
         })
     });
 
+
+
     $("#retorno").click(function(event){
         var entrega_id = $("#entrega-id").text();
+        alert("buscando dados de retorno")
         $.ajax({
             type: "GET",
             url: "{% url 'comercial:pre_nota_retorno' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-                $(".modal-content").html(result)
-                $("#create-modal").modal('toggle'); 
+                alert("Dados de retorno obtidos com sucesso");
+                $(".modal-content").html(result);
+                jQuery.noConflict(); 
+                $("#create-modal").modal('toggle');
+                alert(result) 
             },
             error: function(error){
-                alert("não foi possível visualizar o retnorno")
+                alert("não foi possível visualizar o retorno")
             }
         })
     });

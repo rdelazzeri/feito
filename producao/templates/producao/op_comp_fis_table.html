@@ -1,0 +1,44 @@
+{{ formset.management_form }}
+<table id="itens-table" class="table feito-table-0 itens-table">
+  <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Código</th>
+      <th class="text-center" scope="col">Descrição</th>
+      <th class="text-center" scope="col">Quantidade</th>
+      <th class="text-center" scope="col">Unidade</th>
+      <th class="text-center" scope="col">Custo Unit.</th>
+      <th class="text-center" scope="col">Custo Total</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in formset %}
+      <tr>
+        <td style="display: none" >{{ it.item_id }}</td>
+        <td style="display: none" >{{ it.source }}</td>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center">{{ it.cod }}</td>
+        <td class="text-center">{{ it.desc }}</td>
+        <td class="text-center">{{ it.qtd_programada }}</td>
+        <td class="text-center">{{ it.unid }}</td>
+        <td class="text-center">{{ it.custo_unit}}</td>
+        <td class="text-center">{{ it.custo_tot }}</td>
+
+        <td class="text-center">
+          <!-- Update book buttons -->
+          <button type="submit" class="btn btn-sm btn-primary" >
+            <span class="fa fa-pencil"></span>
+          </button>
+          <!-- Delete book buttons -->
+          <button type="button" class="delete-item btn btn-sm btn-danger" >
+            <span class="fa fa-trash"></span>
+          </button>
+        </td>
+        <div id="divCheckbox" style="display: none;">        
+          <td style="display: none;" >{{ it.item_id }}</td>
+        </div>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

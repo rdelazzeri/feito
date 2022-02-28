@@ -12,9 +12,34 @@ from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.db import transaction
 from django.forms import modelformset_factory, inlineformset_factory, formset_factory
-
+from django.template.loader import render_to_string
+from django.http.response import HttpResponse
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+
+
+def produto_search(request):
+    data = dict()    
+    if request.method == 'GET':
+        pesq = request.GET.get('pesquisa')
+        tipo = request.GET.get('tipo') if request.GET.get('tipo') else None
+        tipo = None if tipo == 'CO' else tipo
+        print(tipo)
+        prods = Prod.objects.only('id', 'cod', 'desc').filter(desc__istartswith = pesq)
+        prods = prods.filter(tipoProduto__cod = tipo) if tipo else prods
+        prods = prods.exclude(tipoProduto__cod = 'SI') if tipo == None else prods
+        prods = prods.exclude(tipoProduto__cod = 'SE') if tipo == None else prods
+
+        data['table'] = render_to_string(
+            'prod/_prod_table.html',   
+            {'prods': prods},
+        )
+        print('Pesquisa: ' + pesq)
+        return HttpResponse(data['table'])
+    else:
+        print('Prod search - ' + request.POST)
+        return render(request, 'prod/produto_search.html' )
+
 
 
 def prod_comp2(request, produto_id):
@@ -103,7 +128,7 @@ def prod_search(request):
 def prod_detail(request, prod_id):
     prod = get_object_or_404(Prod, pk=prod_id)
     if request.method == 'POST':
-        print(request.POST)
+        #print(request.POST)
         act = request.POST['act']
 
         print('Submit do form de produto - act: ' + str(act) + ' prod_id: ' + str(prod_id))
@@ -126,9 +151,9 @@ def prod_detail(request, prod_id):
             return redirect('prod:prod_comp', prod_id)
     else:
         instance = get_object_or_404(Prod, pk=prod_id)
-        print(instance)
+        #print(instance)
         form = ProdDetailForm(request.POST or None, instance=instance)
-        print(form)
+        #print(form)
         return render(request, 'prod/prod_detail.html', {'form': form, 'prod_id':prod_id})
 
     

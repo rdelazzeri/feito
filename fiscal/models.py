@@ -26,6 +26,7 @@ class NF_config(models.Model):
 
 class Pre_nota(models.Model):
     entrega = models.ForeignKey(Entrega, on_delete=CASCADE, related_name='nfe')
+    data_emissao = models.DateField()
     num_nf = models.IntegerField(default=0)
     operacao = models.CharField(max_length=1, null=True, blank=True)
     natureza_operacao = models.CharField(max_length=60, null=True, blank=True)

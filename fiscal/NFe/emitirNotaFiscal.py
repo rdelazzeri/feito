@@ -64,22 +64,22 @@ def emitirNotaFiscal(pre_nota):
         nfe.serie = ret_json['serie']
         nfe.uuid = ret_json['uuid']
         nfe.status = ret_json['status']
-        nfe.motivo = ret_json['motivo']
+        if ret_json['motivo']: nfe.motivo = ret_json['motivo']
         nfe.chave = ret_json['chave']
         nfe.modelo = ret_json['modelo']
         nfe.log = ret_json['log']
         nfe.xml = ret_json['xml']
         nfe.danfe = ret_json['danfe']
         nfe.danfe_simples = ret_json['danfe_simples']
-        nfe.erro = '-'
-        error = False
+        nfe.error = '-'
+        erro = False
     nfe.save()
     
     print('teste do númro da nf')
     if erro:
-        pre_nota.entrega.status.id = 1
+        pre_nota.entrega.status = 1
     else:
-        pre_nota.entrega.status.id = 2
+        pre_nota.entrega.status = 2
         pre_nota.num_nf = nfe.nfe
         pre_nota.entrega.num_nf = nfe.nfe
         pre_nota.save()

@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <form method="post" id="form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <h1>Nota de entrada</h1 >
+            </div>
+
+            <div class="form-group col-md-6 mb-0">
+                <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
+                <a href="/ent/nf/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/com/nf/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <button type="button" id="delete" class="btn btn-primary">Deletar</button>
+                <button type="button" name="nfe" id="gera-pedido" class="btn btn-primary">Gera pedido</button>
+            </div>
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-group col-md-2 mb-0">
+                {{ form.num|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-1 mb-0">
+                {{ form.serie|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0 " >
+                {{ form.data_emissao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0 ">
+                {{ form.num_oc|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.operacao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.vencimento|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-5 mb-0">
+                {{ form.parceiro|as_crispy_field }}
+            </div>
+
+            <div class="form-group col-md-2 mb-0">
+                {{ form.tipo_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-5 mb-0">
+                {{ form.transportadora|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">    
+
+            <div class="form-group col-md-3 mb-0">
+                {{ form.base_calc_icms|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_icms|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.base_calc_icms_st|as_crispy_field }}
+            </div>            
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_icms_st|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.valor_total_produtos|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">    
+
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_frete|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_seguro|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.desconto|as_crispy_field }}
+            </div>            
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_outras_desp|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_ipi|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.valor_total_nota|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#pesquisa-prod">Pesquisar Produtos</button>
+            </div>
+        </div>
+
+        <div id="orcamento-itens">
+            {% include "entradas/nf_entrada_itens_table.html" %}
+        </div>
+        
+
+        <div>
+            <button type="button" class="btn btn-primary" id="parcelas">Gerar Contas a Pagar</button>
+            <button type="button" class="btn btn-secondary" id="parcelas-delete">Excluir Parcelas</button>
+        </div>
+        <div id="parcelas-table" >
+            {% include "entradas/nf_entrada_parcelas_table.html" %}
+        </div>
+
+
+
+        <div class="form-row" >
+            <div class="form-group col-md-12 mb-0">
+                <div id="fr-id">{{ id }}</div>
+                <div id="prod-selected"></div>
+            </div>
+        </div>
+        
+    </form>
+
+
+       
+    {% for error_field, error_message in form.errors.items %}
+        <div class="alert alert-primary" role="alert"></div>
+            <p>{{ error_field|striptags }}: {{ error_message|striptags }}</p>
+        </div>
+    {% endfor %}
+      
+    
+    
+
+</div>
+
+
+
+{% include "entradas/nf_entrada_prod_search.html" %}
+
+ 
+{% endblock content %}
+
+
+{% block extrascripts %}
+
+
+{{ form.media }}
+
+
+
+<script>
+
+
+(function ($) {
+    jQuery.noConflict()("#modalFeito").click(function(event){
+        event.preventDefault();
+        if ($("#fr-id").text()){
+                //$("#form").submit();
+                alert("estou aqui");
+                $("#pesquisa-prod").modal('show');
+            }
+        else {  
+            $("#form").submit();
+        }
+    });
+
+    jQuery.noConflict()("#pesquisar").click(function(event){
+        var pesq = $("#pesquisa").val();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_prod_search' %}",
+            data: {"pesquisa": pesq},
+            success: function(result){
+                $("#prod-tab").html(result) 
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    });
+
+    jQuery.noConflict()("#prod-tab").on("click", ".btnSelect", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var prod = currentRow.find("td:eq(0)").text();
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_item_add' %}",
+            data: {"produto": prod, "id": fr_id},
+            success: function(result){
+                location.reload();
+                $("#pesquisa-prod").modal('toggle'); 
+            },
+            error: function(error){
+                alert(error)
+            }
+        });
+    });
+
+    jQuery.noConflict()("#itens-table").on("click", ".delete-item", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var item_id = currentRow.find("td:eq(0) input").val();
+        alert(item_id);
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_item_delete' %}",
+            data: {"item_id": item_id},
+            success: function(result){
+                location.reload();
+            },
+            error: function(error){
+                alert("Não foi possivel completar o processo")
+            }
+        });
+    }); 
+
+    jQuery.noConflict()("#delete").click(function(event){
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_delete' %}",
+            data: {"id": fr_id},
+            success: function(result){
+                alert("Nota Excluído com sucesso")
+            },
+            error: function(error){
+                alert("A Nota não pode ser excluído")
+            }
+        })
+    })
+
+
+})($)
+</script>
+
+<script>
+    jQuery.noConflict()("#parcelas").click(function(event){
+
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_parcelas_create' %}",
+            data: {"id": fr_id},
+            success: function(result){
+                $("#parcelas-table").html(result);
+            },
+            error: function(error){
+                alert("Falha ao gerar parcelas")
+            }
+
+        })
+    });
+
+    jQuery.noConflict()("#parcelas-delete").click(function(event){
+
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_parcelas_delete' %}",
+            data: {"id": fr_id},
+            success: function(result){
+                $("#parcelas-table").html(result);
+            },
+            error: function(error){
+                alert("Falha ao excluir parcelas")
+            }
+
+        })
+    });
+
+</script>
+
+
+
+
+
+{% endblock extrascripts %}

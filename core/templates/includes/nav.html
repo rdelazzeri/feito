@@ -27,7 +27,7 @@
 
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Comercial</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                <div class="dropdown-menu" aria-labelledby="dropdown02">
                     <a class="dropdown-item" href="/com/orcamento/list">Lista de Orçamentos (s)</a> 
                     <a class="dropdown-item" href="/com/orcamento/new">Novo Orçamento (s)</a> 
                     <div class="dropdown-divider"></div>    
@@ -42,7 +42,7 @@
 
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Produtos</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                <div class="dropdown-menu" aria-labelledby="dropdown03">
                     <a class="dropdown-item" href="/prod/s">Pesquisa Produtos</a>
                     <a class="dropdown-item" href="/prod/n">Novo Produto</a>
                     <div class="dropdown-divider"></div>                    
@@ -51,20 +51,54 @@
             </li>
 
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="dropdown02" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Estoque</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown02">
-                    <div class="dropdown-menu" aria-labelledby="dropdown03">
-                        <a class="dropdown-item" >Entrega</a>
-                    </div>
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Compras</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown04">
+                    <a class="dropdown-item" href="/ent/nf/list">Pesquisa notas de entrada</a>
+                    <a class="dropdown-item" href="/ent/nf/new">Nova nota de entrada</a>
+                    <div class="dropdown-divider"></div>                    
+                    <a class="dropdown-item" href="/ent/oc/list">Pesquisa Ordens de Compra</a>
+                    <a class="dropdown-item" href="/ent/oc/new">Nova Ordem de Compra</a>     
+                    <div class="dropdown-divider"></div>                    
+                    <a class="dropdown-item" href="/ent/oc/list">Pesquisa Solicitações de Materiais</a>
+                    <a class="dropdown-item" href="/ent/oc/new">Nova Solicitação de material</a>            
                 </div>
             </li>
 
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Protocolo de Entrega</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown03">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown02" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Estoque</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown06">
                     <a class="dropdown-item" >Entrega</a>
                 </div>
             </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Produção</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown07">
+                    <a class="dropdown-item" href="/pr/op/list">Pesquisa Ordem de Produção</a>
+                    <a class="dropdown-item" href="/pr/op/new">Ordem de Produção</a>
+                    <a class="dropdown-item" href="/pr/pdf" target="_new">PDF</a>
+                    <a class="dropdown-item" href="/pr/rpt_op" target="_new">imprime OP</a>
+                </div>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown08" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Financeiro</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown08">
+                    <a class="dropdown-item" href="/fin/cp/list">Contas a Pagar</a>
+                    <div class="dropdown-divider"></div>   
+                    <a class="dropdown-item" href="/fin/cr/list">Contas a Receber</a>
+                </div>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Configurações</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown05">
+                    <a class="dropdown-item" href="/cyber">Importação do Cybersul</a>
+                    <div class="dropdown-divider"></div> 
+                    <a class="dropdown-item" href="/cad/muni">Importar Cidades do IBGE</a>               
+                </div>
+            </li>
+
         </ul>
 
         {% if user.is_authenticated %}

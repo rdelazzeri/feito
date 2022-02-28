@@ -5,7 +5,8 @@ from django.db.models import F
 from django.db.models.enums import Choices
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
-from datetime import datetime, timedelta   
+from datetime import datetime, timedelta
+#from financeiro.models import Plano_contas   
 from prod.models import Prod
 from cadastro.models import Parceiro
 from django.db.models import Avg, Count, Min, Sum
@@ -21,11 +22,7 @@ class Comercial_config(models.Model):
         return 'Configurações comerciais'
 
 
-class Vencimento(models.Model):
-    vencimentos = models.CharField("Vencimentos", max_length=30, default='0')
 
-    def __str__(self):
-        return self.vencimentos
 
 TIPO_FRETE = (
     ('1','CIF'),
@@ -88,9 +85,10 @@ class Operacao(models.Model):
     mensagem_NF = models.TextField(blank=True, null=True)
     obs = models.TextField(blank=True, null=True)
     classe_imposto = models.CharField("Classe do imposto", max_length=15, null=True, blank=True)
+    conta_caixa = models.ForeignKey('financeiro.Plano_contas', on_delete=PROTECT, null=True, blank=True)
 
     def __str__(self):
-        return self.desc
+        return str(self.desc)
 
 STATUS_OPCOES = (
     (0,'ORÇAMENTO'),
@@ -114,17 +112,17 @@ class Orcamento_status(models.Model):
     desc = models.CharField("Nome", max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return self.desc
+        return str(self.desc)
 
 class Orcamento_origem(models.Model):
     desc = models.CharField("Nome", max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return self.desc
+        return str(self.desc)
 
 
 class Orcamento(models.Model):
-    num_orc = models.PositiveIntegerField("Número Orçamento", default=0, unique=True)
+    num_orc = models.PositiveIntegerField("Número Orçamento", default=0, null=True, blank=True)
     num_orc_cli = models.CharField("Número Cliente", max_length=15,  null=True, blank=True)
     status = models.ForeignKey(Orcamento_status, on_delete=PROTECT, null=True, blank=True)
     origem = models.ForeignKey(Orcamento_origem, on_delete=PROTECT, null=True, blank=True)
@@ -134,16 +132,16 @@ class Orcamento(models.Model):
     data_previsao = models.DateTimeField(blank=True, null=True)
     previsao_entrega = models.PositiveSmallIntegerField('Prazo de entrega', default=0, blank=True, null=True)
     validade_orcamento = models.PositiveSmallIntegerField('Validade orcamento', default=7, blank=True, null=True)
-    vencimentos = models.ForeignKey(Vencimento, on_delete = PROTECT, related_name='orcamentos', null=True, blank=True)
+    vencimentos = models.ForeignKey('financeiro.Vencimento', on_delete = PROTECT, related_name='orcamentos', null=True, blank=True)
     transportadora = models.ForeignKey(Parceiro, related_name='orcamentos_transportados', on_delete = PROTECT, null=True, blank=True)
-    tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, default='1')
+    tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, default='2')
     valor_frete = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     obs = models.TextField(max_length=5000,  blank=True, null=True)
     valor_total_produtos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     valor_total_orcamento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
-    def __str__(self):
-        return 'Número: ' + self.num_orc + ' Status: ' + self.status + 'NF: ' + self.nf
+    #def __str__(self):
+    #    return 'Número: '
 
 def calcula_total_orcamento(orcamento):
     orc_tot = Orcamento_item.objects.filter(orcamento_id = orcamento).aggregate(TOTAL = Sum('pr_tot'))['TOTAL']
@@ -201,8 +199,8 @@ class Orcamento_item(models.Model):
         )
     obs = models.CharField(max_length=500, blank=True, null=True)
 
-    def __str__(self):
-        return self.produto.desc 
+    #def __str__(self):
+    #    return self.produto.desc 
 
     def save(self):
         t = float(self.qtd) * float(self.pr_unit)
@@ -247,7 +245,7 @@ class Pedido(models.Model):
     data_cadastro = models.DateTimeField(blank=True, null=True)
     data_previsao = models.DateTimeField(blank=True, null=True)
     cliente = models.ForeignKey(Parceiro, related_name='pedidos', on_delete = PROTECT, null=True, blank=True)
-    vencimentos = models.ForeignKey(Vencimento, on_delete = PROTECT, related_name='pedidos', null=True, blank=True)
+    vencimentos = models.ForeignKey('financeiro.Vencimento', on_delete = PROTECT, related_name='pedidos', null=True, blank=True)
     transportadora = models.ForeignKey(Parceiro, related_name='pedidos_tranportados', on_delete = PROTECT, null=True, blank=True)
     tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, default='1')
     valor_frete = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -412,7 +410,7 @@ class Entrega(models.Model):
     data_cadastro = models.DateTimeField(blank=True, null=True)
     data_emissao = models.DateTimeField(blank=True, null=True)
     pedido_origem = models.ForeignKey(Pedido, related_name='entregas', on_delete=CASCADE, null=True, blank=True)
-    vencimentos = models.ForeignKey(Vencimento, on_delete = PROTECT, related_name='entregas', null=True, blank=True)
+    vencimentos = models.ForeignKey('financeiro.Vencimento', on_delete = PROTECT, related_name='entregas', null=True, blank=True)
     transportadora = models.ForeignKey(Parceiro, related_name='entregas_tranportadas', on_delete = PROTECT, null=True, blank=True)
     tipo_frete = models.CharField(max_length=1, choices=TIPO_FRETE, default='1')
     valor_frete = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -439,24 +437,30 @@ class Entrega(models.Model):
         val_parc = round((val_tot / num_parc),2)
         val_parc_saldo = (val_tot - num_parc * val_parc)
         val_parc_1 = val_parc_saldo + val_parc
-        print('Valor total fatura: ' + str(val_tot) + 'VAlor do saldo: ' + str(val_parc_saldo) + 'Valor parcela: ' + str(val_parc) + 'Valor Parcela 1: ' + str(val_parc_1))
+        print('Valor total fatura: ' + str(val_tot) + 'Valor do saldo: ' + str(val_parc_saldo) + 'Valor parcela: ' + str(val_parc) + 'Valor Parcela 1: ' + str(val_parc_1))
         
         
-        entrega_parcelas = Entrega_parcelas.objects.filter(entrega = self)
+        entrega_parcelas = Entrega_parcelas.objects.filter(entrega = self).delete()
+        print('Parcelas deletadas')
+        '''
         n_parc = entrega_parcelas.count()
+        print('numro de parcelas: ' + str(n_parc))
         dif_n_parc =  n_parc - num_parc
         if dif_n_parc > 0:
             for i in range(dif_n_parc):
                 n = i + num_parc
                 parc = entrega_parcelas[n] 
                 parc.delete()
+                print('parcelas extras deletadas')
+        '''
                 
         for n, parcela in enumerate(parcelas):
-            parc = entrega_parcelas[n]    
+            parc = Entrega_parcelas()   
             parc.entrega = self
+            print('vencimento parcelas')
             parc.num = n + 1
             parc.vencimento = datetime.date.today() + timedelta(days=int(parcela))
-            if n == 1:
+            if n == 0:
                 parc.valor_parcela = val_parc_1
             else:
                 parc.valor_parcela = val_parc

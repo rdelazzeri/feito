@@ -18,7 +18,7 @@ def nfe_novo_num():
     return cfg.num_ult_nf + 1
 
 def gera_nfe(prenota_id):
-    print('comercial.services.gera_nfe()')
+    print('fiscal.services.gera_nfe()')
     nfe = {}
     pnf = Pre_nota.objects.get(pk=prenota_id)
     

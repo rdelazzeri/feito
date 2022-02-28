@@ -1,142 +1,176 @@
 import pdb
 from io import BytesIO
 from reportlab.lib.pagesizes import letter, A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Paragraph,  Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
+from reportlab.lib.units import mm, cm
 from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
-registerFont(TTFont('Arial','ARIAL.ttf'))
- 
+import os, reportlab
+from pathlib import Path
+from decimal import Decimal
+import datetime
     
- 
-class MyPrint:
+def p_mm(p):
+    return p / mm
 
+def mm_p(p):
+    return p * mm
 
-    def __init__(self, buffer, pagesize):
-        self.buffer = buffer
-        if pagesize == 'A4':
-            self.pagesize = A4
-        elif pagesize == 'Letter':
-            self.pagesize = letter
-        self.width, self.height = self.pagesize
-
-    @staticmethod
-    def _header_footer(canvas, doc):
-        # Save the state of our canvas so we can draw on it
-        canvas.saveState()
-        styles = getSampleStyleSheet()
- 
-        # Header
-        header = Paragraph('This is a multi-line header.  It goes on every page.   ' * 5, styles['Normal'])
-        w, h = header.wrap(doc.width, doc.topMargin)
-        header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
- 
-        # Footer
-        footer = Paragraph('This is a multi-line footer.  It goes on every page.   ' * 5, styles['Normal'])
-        w, h = footer.wrap(doc.width, doc.bottomMargin)
-        footer.drawOn(canvas, doc.leftMargin, h)
- 
-        # Release the canvas
-        canvas.restoreState()
-
-
-    def print_users(self):
-        buffer = self.buffer
-        doc = SimpleDocTemplate(buffer,
-                                rightMargin=72,
-                                leftMargin=72,
-                                topMargin=72,
-                                bottomMargin=72,
-                                pagesize=self.pagesize)
- 
-        # Our container for 'Flowable' objects
-        elements = []
- 
-        # A large collection of style sheets pre-made for us
-        styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name='centered', alignment=TA_CENTER))
- 
-        # Draw things on the PDF. Here's where the PDF generation happens.
-        # See the ReportLab documentation for the full list of functionality.
-        users = [
-            {'name':'Teste'},
-            {'name':'Teste1'},
-            {'name':'Teste2'}
-        ]
-        elements.append(Paragraph('My User Names', styles['Heading1']))
-        for i, user in enumerate(users):
-            elements.append(Paragraph(user['name'], styles['Normal']))
- 
-        doc.build(elements, onFirstPage=self._header_footer, onLaterPages=self._header_footer,
-                  canvasmaker=NumberedCanvas)
- 
-        # Get the value of the BytesIO buffer and write it to the response.
-        #pdf = buffer.getvalue()
-        #buffer.close()
-        #return pdf
-
-    '''
-        Usage with django
-    @staff_member_required
-    def print_users(request):
-        # Create the HttpResponse object with the appropriate PDF headers.
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="My Users.pdf"'
-     
-        buffer = BytesIO()
-     
-        report = MyPrint(buffer, 'Letter')
-        pdf = report.print_users()
-     
-        response.write(pdf)
-        return response
-    '''
-
-
-class NumberedCanvas(canvas.Canvas):
-
+class CustomCanvas(canvas.Canvas):
+    """
+    Adapted from http://code.activestate.com/recipes/576832/
+    """
+    meux = 10
+    meuy = 10
 
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
-        self.Canvas = canvas.Canvas
         self._saved_page_states = []
- 
+
+    def setPagePoint(self, x, y):
+        self.x = x
+        self.y = y
 
     def showPage(self):
         self._saved_page_states.append(dict(self.__dict__))
         self._startPage()
- 
 
+    def drawPageNumber(self, page_count):
+        self.setFont('Helvetica', 8)
+        self.drawString(458.54, 782.45, 
+                             'Página: %s / %s' % (self._pageNumber, page_count))
     def save(self):
-        """add page info to each page (page x of y)"""
         num_pages = len(self._saved_page_states)
         for state in self._saved_page_states:
             self.__dict__.update(state)
-            pdb.set_trace()
-            self.setFont('Arial', 8)
-            self.draw_page_number(num_pages)
-            self.Canvas.showPage(self)
-        self.Canvas.save(self)
- 
- 
-    def draw_page_number(self, page_count):
-        # Change the position of this to wherever you want the page number to be
-        self.drawRightString(211 * mm, 15 * mm + (0.2 * inch),
-                             "Page %d of %d" % (self._pageNumber, page_count))
+            self.drawPageNumber(num_pages)
+            canvas.Canvas.showPage(self)
+        canvas.Canvas.save(self)
 
 
 
+class MyReport:
 
-if __name__ == '__main__':
-    buffer = BytesIO()
-     
-    report = MyPrint(buffer, 'Letter')
-    pdf = report.print_users()
-    buffer.seek(0)
- 
-    with open('arquivo.pdf', 'wb') as f:
-        f.write(buffer.read())
+    px = 10
+    py = 10
+
+    def __init__(self, buffer, *args, **kwargs):
+        self.buffer = buffer
+        self.filename = 'test.pdf'
+
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        reportlab.rl_config.TTFSearchPath.append(str(BASE_DIR) + '/core/fonts')
+        registerFont(TTFont('Lekton-Regular','Lekton-Regular.ttf'))
+             
+        self.doc = SimpleDocTemplate(self.buffer, pagesize=A4,
+                                     topMargin = 2 * cm, bottomMargin = 1 * cm,
+                                     leftMargin = 1 * cm, rightMargin = 1 * cm)
+        
+        self.left_footer = kwargs['left_footer'] if 'left_footer' in kwargs else ''
+        self.titulo = kwargs['titulo'] if 'titulo' in kwargs else ''
+        self.empresa = kwargs['empresa'] if 'empresa' in kwargs else 'Defer Indústria Metalúrgica'
+        self.cnpj = kwargs['cnpj'] if 'cnpj' in kwargs else '04.408.568/0001-05'
+        self.relatorio = kwargs['relatorio'] if 'relatorio' in kwargs else 'RPR-001/BVD'
+        self.dados = kwargs['dados'] if 'dados' in kwargs else 'fazio'
+        
+        self.tm = 20 * mm
+        self.bm = 20 * mm
+        self.lm = 20 * mm
+        self.rm = 20 * mm
+        #self.px = 10
+        #self.py = 10
+        self.Story = []
+
+    def onMyFirstPage(self, canvas, doc):
+        # If the left_footer attribute is not None, then add it to the page
+        canvas.saveState()
+        canvas.setTitle(self.titulo)
+        if self.left_footer is not None:
+            canvas.setFont('Helvetica', 8)
+            canvas.drawString(1 * cm, 28 * cm, self.titulo)
+            canvas.drawString(1 * cm, 1 * cm, self.left_footer)
+        canvas.restoreState()
+
+    def onMyLaterPages(self, canvas, doc):
+        # If the left_footer attribute is not None, then add it to the page
+        canvas.saveState()
+        canvas.setTitle(self.titulo)
+        if self.left_footer is not None:
+            canvas.setFont('Helvetica', 8)
+            canvas.drawString(1 * cm, 28 * cm, self.titulo)
+            canvas.drawString(1 * cm, 1 * cm, self.left_footer)
+        canvas.restoreState()
+
+    def onAllPages(self, canvas, doc):
+        # If the left_footer attribute is not None, then add it to the page
+        canvas.saveState()
+        canvas.setFont('Helvetica', 8)
+        canvas.setTitle(self.titulo)
+        
+        #header
+        #grid
+        hh = 12 * mm #altura do cabeçalho
+        th = self.bm + doc.height
+        bh = th - hh
+        div1 = doc.leftMargin + 40 * mm
+        div2 = doc.leftMargin + doc.width - 40 * mm
+        canvas.line(doc.leftMargin, th, doc.width + doc.leftMargin, th )
+        canvas.line(doc.leftMargin, bh, doc.width + doc.leftMargin, bh )
+        canvas.line(div1, th, div1, bh )
+        canvas.line(div2, th, div2, bh )
+        #texto
+        l1 = th - 11
+        l2 = l1 - 10
+        l3 = l2 - 10
+        centro = doc.width / 2 + doc.leftMargin
+
+        self.px = div2 + 5
+        self.py = l3
+        print(self.px)
+        print(self.py)
+
+        canvas.drawString(doc.leftMargin + 5, l1, self.empresa)
+        canvas.drawString(doc.leftMargin + 5, l2, self.cnpj)
+        canvas.drawString(doc.leftMargin + 5, l3, self.relatorio)
+        
+        #div da data
+        time = datetime.datetime.today()
+        date = time.strftime("Data: %d/%m/%Y")
+        hora = time.strftime("Hora: %H:%M:%S")
+        canvas.drawString(div2 + 5, l1, date)
+        canvas.drawString(div2 + 5, l2, hora)
+
+        #div do titulo
+        canvas.setFont('Helvetica', 14)
+        canvas.drawString(div1 + 10, l2, 'Relatório de produtos')
+        
+        
+        canvas.restoreState()
+        
+
+    def generateReport(self):
+        self.reportContent()
+        
+        self.doc.build(self.Story, canvasmaker=CustomCanvas, 
+                       onFirstPage=self.onAllPages,
+                       onLaterPages=self.onAllPages)
+
+        pdf = self.buffer.getvalue()
+        self.buffer.close()
+        return pdf    
+
+    def reportContent(self):
+        styles = getSampleStyleSheet()
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='st_normal', fontName='Lekton-Regular', fontSize = 10)) 
+        #styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
+        #justify = styles['Justify']
+        normal = styles['st_normal']
+        dados = self.dados
+
+        for linha in dados:
+            self.Story.append(Paragraph(linha, normal))

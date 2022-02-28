@@ -15,7 +15,7 @@
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script>
     $("#id_estado").change(function () {
-      var url = ("{% url 'cidades' %}");  // get the url of the `load_cities` view
+      var url = ("{% url 'cadastro:cidades' %}");  // get the url of the `load_cities` view
       var estadoId = $(this).val();  // get the selected country ID from the HTML input
 
       $.ajax({                       // initialize an AJAX request

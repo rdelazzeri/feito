@@ -11,4 +11,5 @@ urlpatterns = [
     path('sincunid', v.cyber_sinc_unid, name = 'cyber_sinc_unid'),
     path('sincncm', v.cyber_sinc_ncm, name = 'cyber_sinc_ncm'),
     path('sinccomposicao', v.cyber_sinc_composicao, name = 'cyber_sinc_composicao'),
+    path('sincpessoa', v.cyber_sinc_pessoa, name = 'cyber_sinc_pessoa'),
 ]

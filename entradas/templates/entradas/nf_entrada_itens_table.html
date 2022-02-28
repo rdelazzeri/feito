@@ -1,0 +1,52 @@
+{{ formset.management_form }}
+<table id="itens-table" class="table">
+  <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Código</th>
+      <th class="text-center" scope="col">Descrição</th>
+      <th class="text-center" scope="col">Quantidade</th>
+      <th class="text-center" scope="col">Unidade</th>
+      <th class="text-center" scope="col">Preço Unit.</th>
+      <th class="text-center" scope="col">Valor Total</th>
+      <th class="text-center" scope="col">Aliq. ICMS</th>
+      <th class="text-center" scope="col">Aliq. IPI</th>
+      <th class="text-center" scope="col">Val. IPI</th>
+      <th class="text-center" scope="col">Val. ICMS</th>
+      <th class="text-center" scope="col">Total</th>
+      <th class="text-center" scope="col">Gravar/Apagar</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in formset %}
+      <tr>
+        <td style="display: none;" >{{ it.item_id }}</td>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center">{{ it.cod }}</td>
+        <td class="text-center">{{ it.desc }}</td>
+        <td class="text-center">{{ it.qtd }}</td>
+        <td class="text-center">{{ it.unid }}</td>
+        <td class="text-center">{{ it.preco_unit}}</td>
+        <td class="text-center">{{ it.preco_tot }}</td>
+        <td class="text-center">{{ it.aliq_icms }}</td>
+        <td class="text-center">{{ it.aliq_ipi}}</td>
+        <td class="text-center">{{ it.valor_ipi }}</td>
+        <td class="text-center">{{ it.valor_icms }}</td>
+        <td class="text-center">{{ it.valor_total_item }}</td>
+        <td class="text-center">
+          <!-- Update book buttons -->
+          <button type="submit" class="btn btn-sm btn-primary" >
+            <span class="fa fa-pencil"></span>
+          </button>
+          <!-- Delete book buttons -->
+          <button type="button" class="delete-item btn btn-sm btn-danger" >
+            <span class="fa fa-trash"></span>
+          </button>
+        </td>
+        <div id="divCheckbox" style="display: none;">        
+          <td style="display: none;" >{{ it.item_id }}</td>
+        </div>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

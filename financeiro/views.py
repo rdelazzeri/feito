@@ -1,3 +1,8 @@
 from django.shortcuts import render
 
-# Create your views here.
+def cp_list(request):
+    pass
+
+
+def cr_list(request):
+    pass

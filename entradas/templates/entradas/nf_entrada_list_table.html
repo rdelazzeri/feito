@@ -1,0 +1,43 @@
+
+
+
+<table id="list-table" class="table">
+    <thead>
+    <tr>
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center" scope="col">Número</th>
+      <th class="text-center" scope="col">Data de Emissão</th>
+      <th class="text-center" scope="col">Status</th>
+      <th class="text-center" scope="col">Operacao</th>
+      <th class="text-center" scope="col">Fornecedor</th>
+      <th class="text-center" scope="col">Valor da nota</th>
+      <th class="text-center" scope="col">Obs</th>
+      <th class="text-center" scope="col">Read / Update / Delete</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for it in lista %}
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter }}</th>
+        <td class="text-center">{{ it.num }}</td>
+        <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT"}}</td>
+        <td class="text-center">{{ it.status }}</td>
+        <td class="text-center">{{ it.operacao }}</td>
+        <td class="text-center">{{ it.parceiro }}</td>
+        <td class="text-center">{{ it.valor_total_nota }}</td>
+        <td class="clamp">{{ it.obs }}</td>
+        <td class="text-center">
+          <!-- Read book buttons -->
+          <button type="button" class="read btn btn-sm btn-primary" data-form-url="{% url 'entradas:nf_entrada_read' it.pk %}">
+            <span class="fa fa-eye"></span>
+          </button>
+          <!-- open pedido full -->
+          <button type="button" id='detail' class="detail btn btn-sm btn-primary" data-form-url="{% url 'entradas:nf_entrada_detail' it.pk %}" >
+            <span class="fa fa-pencil"></span>
+          </button>
+        </td>
+      </tr>
+    {% endfor %}
+  
+    </tbody>
+  </table>

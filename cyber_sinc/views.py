@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from prod.models import Prod, Prod, Grupo, Unid, NCM, ProdComp
+from cadastro.models import Parceiro, Tipo_parceiro
 import firebirdsql
 
 
@@ -209,5 +210,130 @@ def cyber_sinc_composicao(request):
         
     conn.close()
     
-    context = {'context': 'grupos feito'}
+    context = {'context': 'composição feito'}
+    return render(request, template_name, context)
+
+    
+@login_required()
+def cyber_sinc_pessoa(request):
+    template_name = 'cyber_sinc/cyber_sinc.html'
+    conn = firebirdsql.connect(dsn='localhost:/cybersul/banco/dadosadm.fdb', user='sysdba', password='masterkey', charset='ISO8859_1')
+    cur = conn.cursor()
+    cur.execute("""
+            select
+                OBSERVACAO,
+                PESSOA_FISICAOUJURIDICA,
+                NOME,
+                NOME_FANTASIA,
+                CGC_CNPJ,
+                CLIE,
+                CLENDERECO,
+                CLENDNUMERO,
+                CLENDCOMPLEMENTO,
+                BAIRRO,
+                CIDADE,
+                ESTADO,
+                TELEFONE1,
+                TELEFONE2
+            FROM augc0301
+            ORDER BY NOME
+                """)
+    #Prod.objects.all().delete()
+    Parceiro.objects.all().delete()
+
+    tipo_parc = Tipo_parceiro.objects.get(sigla='C')
+    print('Tipo de parceiro cliente selecionado: ' + str(tipo_parc))
+
+    for c in cur.fetchall():
+        parc = Parceiro()
+        parc.obs = c[0]
+        parc.pessoa = c[1]
+        parc.nome = c[2]
+        parc.apelido = c[3]
+        if c[1] == 'J':
+            parc.cnpj = c[4]
+            parc.insc_est = c[5]
+        elif c[1] == 'F':
+            parc.cpf = c[4]
+        parc.logradouro = c[6]
+        parc.numero = c[7]
+        parc.complemento = c[8]
+        parc.bairro = c[9]
+        parc.cidade = c[10]
+        parc.estado = c[11]
+        parc.fone1 = c[12]
+        parc.fone2 = c[13]
+        parc.save()
+        parc.tipo.add(tipo_parc)
+
+
+    print('clientes ok')
+## importação de fornecedores
+
+    cur.execute("""
+            select
+                FOBS,
+                FJUR_FIS,
+                FNOME,
+                FNOME_FANTASIA,
+                FCNPJ_CIC,
+                FIE,
+                FOENDERECO,
+                FOENDNUMERO,
+                FOENDCOMPLEMENTO,
+                FBAIRRO,
+                FCIDADE,
+                FUF,
+                FFONE1,
+                FFONE2,
+                FOBS2,
+                FTIPO
+            FROM augc0501
+            ORDER BY FNOME
+                """)
+    #Prod.objects.all().delete()
+    #Parceiro.objects.all().delete()
+
+    for c in cur.fetchall():
+
+        try:
+            parc = Parceiro.objects.get(nome = c[2])
+            parc.obs = str(parc.obs) + str(c[0])
+            parc.tipo.add(Tipo_parceiro.objects.get(sigla='F'))
+            if c[15] != 'F':
+                try:
+                    parc.tipo.add(Tipo_parceiro.objects.get(sigla = c[15]))
+                except:
+                    pass
+        except:
+            parc = Parceiro()
+            parc.obs = c[0]
+            parc.pessoa = c[1]
+            parc.nome = c[2]
+            parc.apelido = c[3]
+            if c[1] == 'J':
+                parc.cnpj = c[4]
+                parc.insc_est = c[5]
+            elif c[1] == 'F':
+                parc.cpf = c[4]
+            parc.logradouro = c[6]
+            parc.numero = c[7]
+            parc.complemento = c[8]
+            parc.bairro = c[9]
+            parc.cidade = c[10]
+            parc.estado = c[11]
+            parc.fone1 = c[12]
+            parc.fone2 = c[13]
+            parc.email_contato = c[14]
+            parc.save()
+            #print('nome: ' + str(c[2]) + ' estado: ' + str(c[10]) )
+            parc.tipo.add(Tipo_parceiro.objects.get(sigla='F'))
+            if c[15] != 'F':
+                try:
+                    parc.tipo.add(Tipo_parceiro.objects.get(sigla = c[15]))
+                except:
+                    pass
+    conn.close()
+
+    context = {'context': 'Clientes feito'}
     return render(request, template_name, context)

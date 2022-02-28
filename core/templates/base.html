@@ -18,38 +18,20 @@
 
     <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+
+  
+    <link href="{% static '/css/feito.css' %}" rel="stylesheet">
     
-    
+    <base href="/">
+
       <!-- Custom CSS -->
-      <style media="screen">
-        .invalid {
-          color: #dc3545;
-          font-size: 80%;
-        }
-        body {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-        }
-        .footer {
-          margin: auto 0 0;
-          height: 56px;
-        }
-        .clamp {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          line-clamp: 1;
-          -webkit-line-clamp: 1;
-        }
-      </style>
+
 
     {% block css %}{% endblock css %}
 
   </head>
   <body>
-    
+
     {% if user.is_authenticated %}
       {% include "includes/nav.html" %}
     {% endif %}
@@ -63,18 +45,22 @@
 
     {% block scripts %}
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script type="text/javascript" src="{% static '/admin/js/vendor/jquery/jquery.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <!-- Select2 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
-    <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
-    <!-- Data picker -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>
 
+    <!-- Select2 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script> 
+    <!--   <script src="https://unpkg.com/htmx.org@1.6.1"></script>  -->
+    <!--   <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>   -->
+
+    <!-- Data picker -->
+    <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>  -->
+    <!--  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css" rel="stylesheet"/>  -->
+    <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>  -->
+
+    <script type="text/javascript" src="{% static '/admin/js/vendor/jquery/jquery.js' %}"></script>
 
     {% endblock scripts %}
 

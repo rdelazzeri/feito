@@ -25,27 +25,18 @@ class ProdCompForm(forms.ModelForm):
     cod = forms.CharField(max_length=30, label='Código', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '8'}))
     desc = forms.CharField(max_length=60, label='Componente', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '60'}))
     unid = forms.CharField(max_length=6, label='Unidade', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '8'}))
-    qtd = forms.CharField(max_length=15, label='Quantidade', required=False, widget=forms.TextInput(attrs={'size': '8'}))
-    codComp = forms.CharField(max_length=15, label='Quantidade', required=False, widget=forms.TextInput(attrs={'size': '8'}))
+    qtd_programada = forms.CharField(max_length=15, label='Qtd. Programada', required=False, widget=forms.TextInput(attrs={'size': '8'}))
+    qtd_utilizada = forms.CharField(max_length=15, label='Qtd. utilizada', required=False, widget=forms.TextInput(attrs={'size': '8'}))
+    custo_unitario = forms.CharField(max_length=15, label='Custo Unitário', required=False, widget=forms.TextInput(attrs={'size': '8'}))
+    custo_total = forms.CharField(max_length=15, label='Custo Total', required=False, widget=forms.TextInput(attrs={'size': '8'}))
+    nivel = forms.IntegerField(label='Nível', required=False, widget=forms.TextInput(attrs={'size': '8'}))
 
     def __init__(self, *args, **kwargs):
         super(ProdCompForm, self).__init__(*args, **kwargs)
-        #super().__init__(*args, **kwargs)
-        pr = self.instance
-        if pr!=None:
-            #cod = pr.codComp.cod
-            #desc = pr.codComp.desc
-            #unid = pr.codComp.unid.unid
-            #qtd = pr.qtd   
-            #self.fields['desc'].initial = desc
-            #self.fields['unid'].initial = unid
-            #self.fields['cod'].initial = cod
-            pass
-
         self.helper = FormHelper
         self.helper.form_tag = False
         self.helper.template = 'prod/table_inline_formset.html'
-        self.helper.layout = Layout('cod', 'desc', 'unid', 'qtd' )
+        self.helper.layout = Layout('nivel', 'cod', 'desc', 'unid', 'qtd_programada', 'qtd_utilizada', 'custo_unitario', 'custo_total' )
             
 def isfloat(value):
   try:

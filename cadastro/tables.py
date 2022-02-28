@@ -5,7 +5,7 @@ from .models import Parceiro
 
 class Parc_table(tables.Table):
     
-    nome = tables.LinkColumn('view_detalhe', args=[A('pk')], orderable=False)
+    nome = tables.LinkColumn('cadastro:view_detalhe', args=[A('pk')], orderable=False)
     class Meta:
         model = Parceiro
         template_name = "django_tables2/bootstrap4.html"

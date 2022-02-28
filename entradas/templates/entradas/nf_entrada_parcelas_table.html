@@ -1,0 +1,23 @@
+{{ formset_parcelas.management_form }}
+
+<table id="itens-table" class = table.paleblue >
+  <tbody>
+      <div class="container-lg">
+        {% for it in formset_parcelas %}
+          <td>
+            <div class="card text-center bg-info mb-3" style="max-width: 10rem;">
+              <div class="card-body">
+                <p class="card-text">{{ it.num.label }}{{ it.num }}</p>
+                <p class="card-text">{{ it.venc.label }}{{ it.venc }}</p>
+                <p class="card-text">{{ it.valor.label }}{{ it.valor }}</p>
+                <p style="display: none;" >{{ it.item_id }}</p>
+              </div>
+            </div>
+          </td>
+        {% endfor %}
+      </div>
+  </tbody>
+</table>
+
+
+
