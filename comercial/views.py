@@ -31,6 +31,8 @@ import datetime
 from datetime import datetime, date
 from django.utils.timezone import now
 from contextlib import suppress
+from django.utils.safestring import mark_safe
+from django.apps import apps
 
 from bootstrap_modal_forms.generic import (
     BSModalLoginView,
@@ -536,17 +538,17 @@ def entrega_detail(request, entrega_id):
         p = p + 'Venc.: ' + vc + ' Val.: ' + str(parc.valor_parcela) + '\n'
 
     entrega_itens_initial = [{
-    'item_id': item.id,
-    'pedido': item.pedido_item.pedido.num,
-    'cod': item.produto.cod,
-    'desc': item.produto.desc, 
-    'unid': item.produto.unid.unid, 
-    'qtd': item.qtd, 
-    'pr_unit': item.pr_unit, 
-    'pr_tot':item.pr_tot, 
-    'obs':item.obs,
-    'ncm': item.produto.ncm.cod
-    }for item in entrega_itens]
+                'item_id': item.id,
+                'pedido': item.pedido_item.pedido.num,
+                'cod': item.produto.cod,
+                'desc': item.produto.desc, 
+                'unid': item.produto.unid.unid, 
+                'qtd': item.qtd, 
+                'pr_unit': item.pr_unit, 
+                'pr_tot':item.pr_tot, 
+                'obs':item.obs,
+                'ncm': item.produto.ncm.cod
+                }for item in entrega_itens]
     
     formset = entrega_itens_formset(initial = entrega_itens_initial)
 
@@ -556,7 +558,7 @@ def entrega_detail(request, entrega_id):
         pre_nota = Pre_nota.objects.filter(entrega = entrega).first()
         
         if pre_nota:
-            print('pre_nota: ' + str(pre_nota.count()))
+            #print('pre_nota: ' + str(pre_nota.count()))
             ret = NFe_transmissao.objects.filter(pre_nota = pre_nota).first()
             print('status da transmissao: ' + str(ret.status))
 
@@ -803,6 +805,18 @@ def pre_nota_add(request):
             pnf_prod.classe_imposto = entrega.operacao.classe_imposto
             pnf_prod.save()
 
+            mov = {}
+            mov['data'] = entrega.data_emissao
+            mov['desc'] = 'ENTREGA: %s Saída mercadoria' %(entrega.num)
+            mov['produto'] = item.produto
+            mov['qtd_entrada'] = 0
+            mov['qtd_saida'] = item.qtd
+            mov['valor'] = item.produto.cmv if item.produto.cmv != None else 0
+            mov['tipo'] = 'NF_S'
+            mov['chave'] = entrega.id        
+            m = apps.get_model('estoque.Movimento')
+            m.objects.movimento_save(mov)
+
             '''
             pnf_icms = Pre_nota_ICMS()
             pnf_icms.pre_nota_produtos = pnf_prod
@@ -931,7 +945,16 @@ def pre_nota_add(request):
             
 
     print('Nota fiscal pronta para ser gerada')
-    print(gera_nfe(pnf.id))
+    if entrega.status != 3:
+        print(gera_nfe(pnf.id))
 
     return HttpResponse('Pre nota criada')
 
+def pre_nota_estorno(request):
+    print('cheguei na view')
+    if request.method == 'POST':
+        print('estorno estoque')
+        entrega_id = request.POST.get('entrega_id')
+        m = apps.get_model('estoque.Movimento')
+        m.objects.estorno_estoque(entrega_id, 'NF_S')
+        return HttpResponse('beleza')

@@ -5,13 +5,12 @@
     <thead>
     <tr>
       <th class="text-center" scope="col">#</th>
-      <th class="text-center" scope="col">Número</th>
-      <th class="text-center" scope="col">Data de Emissão</th>
+      <th class="text-center" scope="col">Data</th>
       <th class="text-center" scope="col">Produto</th>
-      <th class="text-center" scope="col">Qtd. Prog.</th>
-      <th class="text-center" scope="col">Status</th>
-      <th class="text-center" scope="col">Produzido</th>
-      <th class="text-center" scope="col">Perda</th>
+      <th class="text-center" scope="col">Descrição</th>
+      <th class="text-center" scope="col">Qtd. Entrada</th>
+      <th class="text-center" scope="col">Qtd. Saída</th>
+      <th class="text-center" scope="col">Saldo estoque</th>
       <th class="text-center" scope="col">Read / Update / Delete</th>
     </tr>
     </thead>
@@ -19,13 +18,12 @@
     {% for it in lista %}
       <tr>
         <th class="text-center" scope="row">{{ forloop.counter }}</th>
-        <td class="text-center">{{ it.num }}</td>
-        <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT"}}</td>
+        <td class="text-center">{{ it.data|date:"SHORT_DATE_FORMAT"}}</td>
         <td class="text-left">{{ it.produto }}</td>
-        <td class="text-left">{{ it.qtd_programada }}</td>
-        <td class="text-center">{{ it.status }}</td>
-        <td class="text-center">{{ it.qtd_realizada }}</td>
-        <td class="clamp">{{ it.qtd_perda }}</td>
+        <td class="text-left">{{ it.desc }}</td>
+        <td class="text-center">{{ it.qtd_entrada }}</td>
+        <td class="text-center">{{ it.qtd_saida }}</td>
+        <td class="clamp">{{ it.qtd_saldo }}</td>
         <td class="text-center">
           <!-- Read book buttons -->
           <button type="button" class="read btn btn-sm btn-primary" data-form-url="{% url 'producao:op_detail' it.pk %}">

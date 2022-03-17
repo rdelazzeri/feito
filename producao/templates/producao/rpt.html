@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="shortcut icon" href="https://www.djangoproject.com/favicon.ico">
+        <title>Feito!</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100&family=Roboto:wght@400&display=swap" rel="stylesheet">
+
+        <style>
+
+            @page {
+                size: A5 landscape;
+                margin: 0;
+                margin-left: 10mm;
+                margin-right: 10mm;
+            }             
+
+            p {
+                
+                font-family: monospace;
+                font-size: x-small;
+                line-height: normal;
+                margin-top: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+            .oi {
+                font-family: monospace;
+                font-size:  x-small;
+                line-height: normal;
+                font-weight: bold;
+                margin-top: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+        </style>
+
+
+
+    </head>
+
+    <body>
+
+        <div target="_blank">
+            {% for l in data %}
+                <p>
+                    {{l}}
+                </p> 
+            {% endfor %}
+        </div>
+
+
+
+    </body>
+
+
+
+
+

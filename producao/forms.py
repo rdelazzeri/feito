@@ -16,6 +16,11 @@ from financeiro.models import Conta_pagar
 import djhacker
 
 class OP_detail_form(forms.ModelForm):
+
+    qtd_producao = forms.CharField(max_length=15, label='Qtd producao', required=False, widget=forms.TextInput(attrs={'size': '7'}))
+    qtd_perdida = forms.CharField(max_length=15, label='Qtd perda', required=False, widget=forms.TextInput(attrs={'size': '7'}))
+    data_producao = forms.DateField(label='Data producao', required=False, widget=forms.DateInput())
+
     class Meta:
         model = OP
         fields = '__all__' 

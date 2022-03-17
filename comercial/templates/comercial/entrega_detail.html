@@ -18,6 +18,7 @@
                 <button type="button" id="delete" class="btn btn-primary">Deletar</button>
                 <button type="button" name="nfe" id="prenota-add" class="btn btn-primary">Processa NFe</button>
                 <button type="button" name="nfe" id="retorno" class="btn btn-primary">Consulta NFe</button>
+                <button type="button" name="nfe" id="estorno" class="btn btn-primary">Estorno Estoque</button>
             </div>
         </div>
 
@@ -166,7 +167,7 @@ $(function () {
         var pedido_item_id = currentRow.find("td:eq(8)").text();
         var entrega_id = $("#entrega-id").text();
 
-        alert("Entrega: " + entrega_id + "Produto: " + produto_id + "Pedido-Item: " + pedido_item_id)
+
         $.ajax({
             type: "GET",
             url: "{% url 'comercial:entrega_item_add' %}",  
@@ -185,7 +186,6 @@ $(function () {
         event.preventDefault();
         var currentRow = $(this).closest("tr"); 
         var item_id = currentRow.find("td:eq(9) input").val();
-        alert(item_id);
         $.ajax({
             type: "GET",
             url: "{% url 'comercial:entrega_item_delete' %}",
@@ -201,17 +201,16 @@ $(function () {
     
     function retorno() {
         var entrega_id = $("#entrega-id").text();
-        alert("buscando dados de retorno");
         $.ajax({
             type: "GET",
             url: "{% url 'comercial:pre_nota_retorno' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-                alert("Dados de retorno obtidos com sucesso");
+
                 $(".modal-content").html(result);
                 jQuery.noConflict(); 
                 $("#create-modal").modal('toggle');
-                alert(result) 
+
                 },
             error: function(error){
                     alert("não foi possível visualizar o retorno")
@@ -238,20 +237,34 @@ $(function () {
 
     $("#retorno").click(function(event){
         var entrega_id = $("#entrega-id").text();
-        alert("buscando dados de retorno")
         $.ajax({
             type: "GET",
             url: "{% url 'comercial:pre_nota_retorno' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-                alert("Dados de retorno obtidos com sucesso");
                 $(".modal-content").html(result);
                 jQuery.noConflict(); 
                 $("#create-modal").modal('toggle');
-                alert(result) 
             },
             error: function(error){
                 alert("não foi possível visualizar o retorno")
+            }
+        })
+    });
+
+    $("#estorno").click(function(event){
+        var entrega_id = $("#entrega-id").text();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'comercial:pre_nota_estorno' %}",
+            data: {"entrega_id": entrega_id,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+            success: function(result){
+                alert("Estorno realizado com sucesso"); 
+            },
+            error: function(error){
+                alert("não foi possível realizar o estorno")
             }
         })
     });

@@ -351,6 +351,7 @@ ENTREGA_OPCOES = (
     (0,'RASCUNHO'),
     (1,'ERRO NA TRANSMISSÃO'),
     (2,'EMITIDA'),
+    (3,'ENCERRADA')
 )
 
 '''

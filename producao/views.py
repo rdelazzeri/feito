@@ -7,12 +7,7 @@ from .rp_op import *
 from .models import *
 from .forms import *
 from django.db import transaction
-
-
-
-def op_list(request):
-    pass
-
+from django.utils.safestring import mark_safe
 
 
 class ProdutoAutocomplete(autocomplete.Select2QuerySetView):
@@ -247,63 +242,156 @@ def op_detail(request, pk):
         data['id'] = op.id
         return render(request, 'producao/op_detail.html', data)
 
-class report:
+@transaction.atomic
+def prod_save(request):
+    if request.method == 'GET':
+        op_id = request.GET.get('op_id')
+        dt = request.GET.get('data')
+        prod = Decimal(request.GET.get('qtd_produzida'))
+        perd = Decimal(request.GET.get('qtd_perdida'))
+        print(op_id)
+        print(dt)
+        print(prod)
+        print(perd)
+        result = producao_save(op_id, dt, prod, perd)
+
+        if result:
+            return HttpResponse('feito')
+        else:
+            return HttpResponse('não feito')
+
+
+@transaction.atomic
+def producao_save(op_id, data, qtd_produzida, qtd_perda):
+
+    op = OP.objects.get(id=op_id)
+    opcf = OP_componente_fisico.objects.filter(op=op_id)
+    print(opcf)
+    op.qtd_realizada += qtd_produzida
+    op.qtd_perda += qtd_perda
+    
+
+    #adiciona produção no estoque
+    
+    mov = {}
+    mov['data'] = data
+    mov['desc'] = 'OP: %s Entrada produção' %(op.num)
+    mov['produto'] = op.produto
+    mov['qtd_entrada'] = qtd_produzida
+    mov['qtd_saida'] = 0
+    mov['valor'] = op.produto.cmv if op.produto.cmv != None else 0
+    mov['tipo'] = 'OP_E'
+    mov['chave'] = op_id        
+    m = apps.get_model('estoque.Movimento')
+    print(mov)
+    m.objects.movimento_save(mov)
+    #movimento_save(mov)
+
+    print('passei pelo save mov')
+    #baixa matérias primas do estoque
+
+    for mp in opcf:
+        print(mp)
+        mov = {}
+        mov['data'] = data
+        mov['desc'] = 'OP: %s Baixa MP' %(op.num)
+        mov['produto'] = mp.produto
+        mov['qtd_entrada'] = 0
+        mov['qtd_saida'] = mp.qtd_programada / op.qtd_programada * (qtd_produzida + qtd_perda)
+        mov['valor'] = mp.produto.cmv if mp.produto.cmv != None else 0
+        mov['tipo'] = 'OP_S'
+        mov['chave'] = op_id        
+        m = apps.get_model('estoque.Movimento')
+        print(mov)
+        m.objects.movimento_save(mov)
+
+    op.save()
+    return True
+
+
+
+
+class MeuReport:
     #from django.http import FileResponse
 
     def __init__(self, *args, **kwargs):
-        self.linhas = ()
+        self.linhas = []
         self.response = HttpResponse(content_type='application/pdf')
         self.response['Content-Disposition'] = 'inline; filename="My Users.pdf"'
         self.buffer = BytesIO()
     
     def linha(self, linha):
-        self.linhas.append(linha)
+        self.linhas.append(mark_safe(linha))
 
     def campo(self, valor, tamanho, posicao):
 
+        if valor is None:
+            valor = ''
         if posicao == 'l':
-            str = str(valor)
-            l = tamanho - len(str)
-            campo = str + '&nbsp;' * l 
+            str1 = str(valor)
+            l = tamanho - len(str1)
+            campo = str1 + '&nbsp;' * l  
         elif posicao == 'r':
-            str = str(valor)
-            l = tamanho - len(str)
-            campo = '&nbsp;' * l + str    
+            str1 = str(valor)
+            l = tamanho - len(str1)
+            campo = '&nbsp;' * l + str1     
         elif posicao == 'c':
-            str = str(valor)
-            l = tamanho - len(str)
-            campo = '&nbsp;' * (l/2) + str + '&nbsp;' * (l/2) 
+            str1 = str(valor)
+            l = tamanho - len(str1)
+            campo = '&nbsp;' * int(l/2) + str1 + '&nbsp;' * int(l/2) 
         elif posicao == 'b':
-            campo = '&nbsp;' * valor 
+            campo = str('&nbsp; ' * tamanho )
         elif posicao == 'f':
-            str = str(valor)
-            l = tamanho - len(str)
-            campo = str + str * l
+            str1 = str(valor)
+            l = tamanho - len(str1)
+            campo = str1 + str1 * l
         else: 
             campo = 'erro'
-        #self.linhas.append(campo)
-        return campo
+        return str(campo)
 
     def sub_head(self, titulo, tamanho):
-            str = str(titulo)
-            l = tamanho - len(str)
-            self.linha(self.campo('', 1, 'b'))
-            self.linha(self.campo('-', 110, 'b'))
-            self.linha(self.campo('', 1, 'b'))
-            self.linha(self.campo(titulo, 110, 'C'))
-            self.linha(self.campo('', 1, 'b'))
-            self.linha(self.campo('-', 110, 'f'))
+            #self.linha(self.campo('', 1, 'b'))
+            self.linha(self.campo('', tamanho, 'l'))
+            #self.linha(self.campo('', 1, 'b'))
+            self.linha('<span class="oi">' + self.campo(titulo, tamanho, 'c') + '</span>' )
+            #self.linha(self.campo('', 1, 'b'))
+            self.linha(self.campo('-', tamanho, 'f'))
 
-    def show(self):
+    def show(self, buffer):
+        print(self.linhas)
         meuKwarg = {}
         meuKwarg['titulo'] = 'meu titulo'
         meuKwarg['left_footer'] = 'meu footer'
         meuKwarg['dados'] = self.linhas
-        report = MyReport(self.buffer, **meuKwarg)
+        report = MyReport(buffer, **meuKwarg)
         # I can now specify my custom foot  er in runtime!
         pdf = report.generateReport()
-        self.response.write(pdf)
-        return self.response
+        #self.response.write(pdf)
+        return pdf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def pdf(request):
     from django.http import FileResponse
@@ -311,10 +399,9 @@ def pdf(request):
     response['Content-Disposition'] = 'inline; filename="My Users.pdf"'
     buffer = BytesIO()
 
-     
     prods = Prod.objects.filter(cod__startswith = '10')
 
-    r = report()
+    r = MeuReport()
 
     l_prods = []
     for prod in prods:
@@ -340,36 +427,142 @@ def pdf(request):
     pdf = report.generateReport()
 
 
+    response = r.linhas
+    return response
+
+
+
+def rpt_op(request):
+    from django.utils.safestring import mark_safe, SafeData
+
+    response = HttpResponse()
+    buffer = BytesIO()
+    id = request.GET.get('op_id')
+    print(f'imprimindo op: {id}' )
+
+    op = OP.objects.get(id=id)
+    op_comp_fis = OP_componente_fisico.objects.filter(op = id).select_related()
+    r = MeuReport()
+    #rel = []
+    #l = str(campo('Código', 15)) +  campo('Descrição', 60) +  campo('Quantidade', 10 + campo('Unid.', 4))
+    r.sub_head('ORDEM DE PRODUÇÃO', 125)
+    r.linha(r.campo('Número OP: ', 15, 'l') +  r.campo(op.num, 20, 'l') +  r.campo('Data emissão: ', 15, 'l') + r.campo(op.data_emissao, 4, 'l'))
+    
+    r.sub_head('PRODUTO', 125)
+    r.linha(r.campo('Código', 15, 'l')
+                + r.campo('Descrição', 60, 'l')
+                + r.campo('Qtd.', 10, 'l')
+                + r.campo('Unid.', 8, 'l')
+                + r.campo('Qtd2', 8, 'l')
+                + r.campo('Unid2', 8, 'l')
+                )
+    r.linha(r.campo(op.produto.cod, 15, 'l')
+                + r.campo(op.produto.desc, 60, 'l')
+                + r.campo(op.qtd_programada, 10, 'l')
+                + r.campo(op.produto.unid, 8, 'l')
+                + r.campo(op.produto.fatorUnid, 8, 'l')
+                + r.campo(op.produto.unid2, 8, 'l')
+                )
+
+    
+    r.sub_head('COMPOSIÇÃO', 125)
+    r.linha(r.campo('Código', 15, 'l')
+                + r.campo('Descrição', 60, 'l')
+                + r.campo('Qtd.', 10, 'l')
+                + r.campo('Unid.', 8, 'l')
+                + r.campo('Qtd2', 8, 'l')
+                + r.campo('Unid2', 8, 'l')
+                )           
+
+    for n in op.op_comp_fis.all():
+        if n:
+            linha = (r.campo(n.produto.cod, 15, 'l') 
+                        + r.campo(n.produto.desc, 60, 'l') 
+                        + r.campo(n.qtd_programada, 10, 'l'))
+            
+            linha = linha + r.campo(n.produto.unid, 8, 'l') if n.produto.unid else linha + r.campo('', 8, 'b')
+            linha = linha + r.campo(n.produto.fatorUnid, 8, 'l') if n.produto.fatorUnid else linha + r.campo('', 8, 'b') 
+            linha = linha + r.campo(n.produto.unid2, 8, 'l') if n.produto.unid2 else linha + r.campo('', 8, 'b')
+                         
+            r.linha(linha)
+
+
+    #response.write(r.show(buffer))
+
+    #meuKwarg = {}
+    #meuKwarg['titulo'] = 'meu titulo'
+    #meuKwarg['left_footer'] = 'meu footer'
+    #meuKwarg['dados'] = r.linhas
+
+    #rep = MyReport(buffer, **meuKwarg)
+    #pdf = rep.generateReport()
+   
+    x = []
+    for l in r.linhas:
+        response.writelines(mark_safe(l))
+        #x.append(mark_safe('EU NAO ENTENDO  \&nbsp; &nbsp; &nbsp; &nbsp;DE NOVO'))
+        #print(l)
+
+    
+
+    return render(request, 'producao/rpt.html', {'data': r.linhas})
+    #return response
+
+
+
+
+
+
+
+
+
+
+
+
+def rpt_op_old(request, id):
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="My Users.pdf"'
+    buffer = BytesIO()
+
+    op = OP.objects.get(id=id)
+    r = MeuReport()
+    #rel = []
+    #l = str(campo('Código', 15)) +  campo('Descrição', 60) +  campo('Quantidade', 10 + campo('Unid.', 4))
+
+    r.linha(r.campo('Número OP: ', 15, 'r') +  r.campo(op.num, 20, 'l') +  r.campo('Data emissão: ', 15, 'r') + r.campo(op.data_emissao, 4, 'l'))
+    r.linha(r.campo('Código: ', 15, 'r') +  r.campo(op.produto.cod, 20, 'l') +  r.campo('Descrição: ', 15, 'r') + r.campo(op.produto.desc, 60, 'l'))
+    r.linha(r.campo('Qtd. a produzir: ', 15, 'r') + r.campo(op.qtd_programada, 20, 'l') + r.campo('Unidade: ', 15, 'r') + r.campo(op.produto.unid.unid, 10, 'l')  )
+    #r.linha(r.campo('Qtd. equivalente: ', 15, 'r') + r.campo(op.qtd_programada, 20, 'l') + r.campo('Unidade: ', 15, 'r') + r.campo(op.produto.unid2.unid, 10, 'l')  )
+    r.linha(r.campo('.', 10, 'b'))
+    r.linha(r.campo('-', 110, 'b'))
+    r.linha(r.campo('.', 10, 'b'))
+    r.linha(r.campo('COMPOSIÇÃO', 110, 'C'))
+    r.linha(r.campo('.', 10, 'b'))
+    r.linha(r.campo('-', 110, 'f'))
+    r.linha(r.campo('Código', 15, 'c') +  r.campo('Descrição', 60, 'c') +  r.campo('Qtd.', 10, 'c') + r.campo('Unid.', 4, 'c'))
+    r.sub_head('composição', 110)
+
+    for n in op.op_comp_fis.all():
+        #r.linha(r.campo(op.op_comp_fis.produto.cod, 15, 'l') +  r.campo(op.op_comp_fis.produto.desc, 60, 'l') +  r.campo('Qtd.', 10, 'l') + r.campo('Unid.', 4, 'l'))
+        r.linha(r.campo(' ', 15 , 'f') + r.campo('Qtd2', 10, 'l') + r.campo('Unid2', 10, 'l')  )
+        #r.linha(r.campo(op.op_comp_fis.produto), 40, 'l')
+
+    #response.write(r.show(buffer))
+
+    meuKwarg = {}
+    meuKwarg['titulo'] = 'meu titulo'
+    meuKwarg['left_footer'] = 'meu footer'
+    meuKwarg['dados'] = r.linhas
+
+    rep = MyReport(buffer, **meuKwarg)
+    pdf = rep.generateReport()
+   
     response.write(pdf)
     return response
 
 
-def print_op(id):
-    op = OP.objects.get(id=id)
-    r = report()
-    #rel = []
-    #l = str(campo('Código', 15)) +  campo('Descrição', 60) +  campo('Quantidade', 10 + campo('Unid.', 4))
-
-    r.linha(r.campo('Número OP: ', 15, 'r') +  r.campo(op.num, 20, 'l') +  r.campo('Data emissão: ', 15, 'r') + r.campo(op.data_emi, 4, 'l'))
-    r.linha(r.campo('Código: ', 15, 'r') +  r.campo(op.produto.cod, 20, 'l') +  r.campo('Descrição: ', 15, 'r') + r.campo(op.produto.desc, 60, 'l'))
-    r.linha(r.campo('Qtd. a produzir: ', 15, 'r') + r.campo(op.qtd, 20, 'l') + r.campo('Unidade: ', 15, 'r') + r.campo(op.produto.unid.unid, 10, 'l')  )
-    r.linha(r.campo('Qtd. equivalente: ', 15, 'r') + r.campo(op.qtd2, 20, 'l') + r.campo('Unidade: ', 15, 'r') + r.campo(op.produto.unid2.unid, 10, 'l')  )
-    r.linha(r.campo('', 1, 'b'))
-    r.linha(r.campo('-', 110, 'b'))
-    r.linha(r.campo('', 1, 'b'))
-    r.linha(r.campo('COMPOSIÇÃO', 110, 'C'))
-    r.linha(r.campo('', 1, 'b'))
-    r.linha(r.campo('-', 110, 'f'))
-    r.linha(r.campo('Código', 15, 'c') +  r.campo('Descrição', 60, 'c') +  r.campo('Qtd.', 10, 'c') + r.campo('Unid.', 4, 'c'))
-    r.sub_head('composição')
-
-    for n in op.op_comp_fis.all():
-        r.linha(r.campo(op.op_comp_fis.produto.cod, 15, 'l') +  r.campo(op.op_comp_fis.produto.desc, 60, 'l') +  r.campo('Qtd.', 10, 'l') + r.campo('Unid.', 4, 'l'))
-        r.linha(r.campo(' ',15) + r.campo('Qtd2', 10) + r.campo('Unid2')  )
-
-    return r.show()
-
-
+'''
 
 def rpt_op(request):
     # Set up response
@@ -399,7 +592,7 @@ def rpt_op(request):
     pdf = buff.getvalue()
     buff.close()
     response.write(pdf)
-    return response
+    return response'''
 
 
 def conteudo(canvas):
@@ -458,3 +651,11 @@ def conteudo(canvas):
     #div do titulo
     p.setFont('Helvetica', 14)
     p.drawString(div1 + 10, l2, 'Relatório de produtos')
+
+
+
+def op_list(request):
+    ops = OP.objects.all()
+    #table = PedidosTable(orc)
+    #table.paginate(page=request.GET.get("page", 1), per_page=25)
+    return render(request, 'producao/op_list.html', {'lista': ops})

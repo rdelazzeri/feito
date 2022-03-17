@@ -18,7 +18,7 @@
                 <a href="/pr/op/new"> <button type="button" class="btn btn-primary">Novo</button></a>
                 <a href="/pr/op/list"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="button" id="delete" class="btn btn-primary">Deletar</button>
-                <button type="button" name="nfe" id="gera-pedido" class="btn btn-primary">Gera pedido</button>
+                <button type="button" name="rptop" id="imprime-op" class="btn btn-primary">Imprimir</button>
             </div>
         </div>
 
@@ -69,6 +69,24 @@
 
             <div class="form-group col-md-3 mb-0">
                 {{ form.setor_produtivo|as_crispy_field }}
+            </div>
+
+        </div>
+
+        <div class="form-row">    
+
+            <div class="form-group col-md-3 mb-0 " id="fr-qtd-produzida">
+                {{ form.qtd_producao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0" id="fr-qtd-perdida">
+                {{ form.qtd_perdida|as_crispy_field }}
+            </div>
+
+            <div class="form-group col-md-3 mb-0" id="fr-data">
+                {{ form.data_producao|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                <button type="button" class="btn btn-primary" id="BX">Gravar produção</button>
             </div>
 
         </div>
@@ -124,7 +142,8 @@
         </div>
     {% endfor %}
       
-        
+    <div id="rptop">
+    <div> 
     
 
 </div>
@@ -224,6 +243,57 @@
             }
         })
     })
+
+
+    jQuery.noConflict()("#BX").click(function(event){
+        var fr_id = $("#fr-id").text();
+        var fr_data = $("#id_data_producao").val();
+        var fr_qtd_produzida = $("#id_qtd_producao").val();
+        var fr_qtd_perdida = $("#id_qtd_perdida").val();
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'producao:prod_save' %}",
+            data: {"op_id": fr_id,
+                    "data": fr_data,
+                    "qtd_produzida": fr_qtd_produzida,
+                    "qtd_perdida": fr_qtd_perdida
+            },
+            success: function(result){
+                alert("Produção gravada com sucesso")
+            },
+            error: function(error){
+                alert("Erro na gravação")
+            }
+        })
+    })
+
+
+    jQuery.noConflict()("#imprime-op").click(function(event){
+        var fr_id = $("#fr-id").text();
+        var url = "{% url 'producao:rpt_op' %}"
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'producao:rpt_op' %}",
+            data: {"op_id": fr_id,
+
+            },
+            success: function(response) {
+                    var w = window.open('about:blank');
+                    w.document.open();
+                    w.document.write(response);
+                    w.document.close();
+                },
+            error: function(error){
+                alert("Erro na gravação")
+            }
+        })
+    })
+
+
+
+
 
 
 })($)

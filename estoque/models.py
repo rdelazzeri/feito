@@ -5,6 +5,9 @@ from cadastro.models import Parceiro
 from prod.models import Prod
 from entradas.models import NF_entrada_itens
 from decimal import Decimal
+import datetime
+from django.db.models import Avg, Count, Min, Sum
+
 
 
 from django.db.models.signals import pre_delete
@@ -12,17 +15,59 @@ from django.dispatch import receiver
 
 class MovimentoManager(models.Manager):
     def movimento_save(self, dados):
-        mov, created = Movimento.objects.get_or_create(tipo = dados['tipo'], chave = int(dados['chave']))            
+        print('entrei em movimento save')
+        #mov, created = Movimento.objects.get_or_create(tipo = dados['tipo'], chave = int(dados['chave']))            
+        mov = Movimento()
         mov.data = dados['data']
         mov.desc = dados['desc'] 
         mov.produto = dados['produto']
         mov.qtd_entrada = dados['qtd_entrada']
         mov.qtd_saida = dados['qtd_saida']
         mov.valor = dados['valor']
+        mov.tipo = dados['tipo']
+        mov.chave = dados['chave']
         saldo = Decimal(mov.produto.qEstoque) + Decimal(mov.qtd_entrada) - Decimal(mov.qtd_saida)
         mov.produto.qEstoque = saldo
+        mov.qtd_saldo = saldo
         mov.produto.save()
         mov.save()
+        print('conclui movimento save')
+        #return super().save()
+
+
+    def estorno_estoque(self, chave, tipo):
+        print('cheguei no estorno estoque model')
+        #mov, created = Movimento.objects.get_or_create(tipo = dados['tipo'], chave = int(dados['chave']))            
+        #itens = Movimento.objects.filter(chave=chave, tipo=tipo)
+        itens = Movimento.objects.filter(chave=chave, tipo=tipo).values('produto', 'valor').annotate(Sum('qtd_entrada')).annotate(Sum('qtd_saida'))
+        for it in itens:
+            print(it)
+            s = it['qtd_saida__sum']
+            e = it['qtd_entrada__sum']
+            saldo = e - s
+            if saldo != 0:
+                if saldo < 0:
+                    qe = saldo * -1
+                    qs = 0
+                else:
+                    qe = 0
+                    qs = saldo
+
+                prod = Prod.objects.get(id = it['produto'])
+                mov = Movimento()
+                mov.data = datetime.date.today()
+                mov.desc = 'Estorno id_mov - tipo: %s id: %s' %(tipo, chave)
+                mov.produto = prod
+                mov.qtd_entrada = qe
+                mov.qtd_saida = qs
+                mov.valor = it['valor']
+                mov.tipo = tipo
+                mov.chave = chave
+                saldo = Decimal(mov.produto.qEstoque) + Decimal(mov.qtd_entrada) - Decimal(mov.qtd_saida)
+                mov.produto.qEstoque = saldo
+                mov.qtd_saldo = saldo
+                mov.produto.save()
+                mov.save()
 
 
     def movimento_delete(self, tipo, chave):
