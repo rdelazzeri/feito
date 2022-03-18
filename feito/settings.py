@@ -79,6 +79,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'login_required.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -136,6 +137,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+#Midware para login required 
+LOGIN_REQUIRED_IGNORE_PATHS = [
+    r'/accounts/logout/$',
+    r'/accounts/login/$',
+    r'/accounts/signup/$',
+    r'/admin/$',
+    r'/about/$',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
