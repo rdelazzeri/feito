@@ -6,9 +6,12 @@ from io import BytesIO
 from .rp_op import *
 from .models import *
 from .forms import *
+from .report import *
+from core.relatorio_txt import *
 from django.db import transaction
 from django.utils.safestring import mark_safe
 
+from datetime import datetime, timedelta
 
 class ProdutoAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -270,11 +273,26 @@ def producao_save(op_id, data, qtd_produzida, qtd_perda):
     op.qtd_realizada += qtd_produzida
     op.qtd_perda += qtd_perda
     
+    data_str = str(data)
+    try:
+        nd = int(data_str)
+    except:
+        nd = False
+    if nd:
+        dt = datetime.now() 
+        dt = dt + timedelta(days=nd)
+    else:
+        dt = datetime.strptime(data_str, '%d/%m/%Y')
+    
+    print(data)
+    #dt = datetime.strptime(data, "%d/%m/%Y")
+    #dt = datetime.strptime('2022-03-22', "%d/%m/%Y")
+    print(dt)
 
     #adiciona produção no estoque
     
     mov = {}
-    mov['data'] = data
+    mov['data'] = dt.strftime('%Y-%m-%d')
     mov['desc'] = 'OP: %s Entrada produção' %(op.num)
     mov['produto'] = op.produto
     mov['qtd_entrada'] = qtd_produzida
@@ -293,7 +311,7 @@ def producao_save(op_id, data, qtd_produzida, qtd_perda):
     for mp in opcf:
         print(mp)
         mov = {}
-        mov['data'] = data
+        mov['data'] = dt.strftime('%Y-%m-%d')
         mov['desc'] = 'OP: %s Baixa MP' %(op.num)
         mov['produto'] = mp.produto
         mov['qtd_entrada'] = 0
@@ -307,90 +325,6 @@ def producao_save(op_id, data, qtd_produzida, qtd_perda):
 
     op.save()
     return True
-
-
-
-
-class MeuReport:
-    #from django.http import FileResponse
-
-    def __init__(self, *args, **kwargs):
-        self.linhas = []
-        self.response = HttpResponse(content_type='application/pdf')
-        self.response['Content-Disposition'] = 'inline; filename="My Users.pdf"'
-        self.buffer = BytesIO()
-    
-    def linha(self, linha):
-        self.linhas.append(mark_safe(linha))
-
-    def campo(self, valor, tamanho, posicao):
-
-        if valor is None:
-            valor = ''
-        if posicao == 'l':
-            str1 = str(valor)
-            l = tamanho - len(str1)
-            campo = str1 + '&nbsp;' * l  
-        elif posicao == 'r':
-            str1 = str(valor)
-            l = tamanho - len(str1)
-            campo = '&nbsp;' * l + str1     
-        elif posicao == 'c':
-            str1 = str(valor)
-            l = tamanho - len(str1)
-            campo = '&nbsp;' * int(l/2) + str1 + '&nbsp;' * int(l/2) 
-        elif posicao == 'b':
-            campo = str('&nbsp; ' * tamanho )
-        elif posicao == 'f':
-            str1 = str(valor)
-            l = tamanho - len(str1)
-            campo = str1 + str1 * l
-        else: 
-            campo = 'erro'
-        return str(campo)
-
-    def sub_head(self, titulo, tamanho):
-            #self.linha(self.campo('', 1, 'b'))
-            self.linha(self.campo('', tamanho, 'l'))
-            #self.linha(self.campo('', 1, 'b'))
-            self.linha('<span class="oi">' + self.campo(titulo, tamanho, 'c') + '</span>' )
-            #self.linha(self.campo('', 1, 'b'))
-            self.linha(self.campo('-', tamanho, 'f'))
-
-    def show(self, buffer):
-        print(self.linhas)
-        meuKwarg = {}
-        meuKwarg['titulo'] = 'meu titulo'
-        meuKwarg['left_footer'] = 'meu footer'
-        meuKwarg['dados'] = self.linhas
-        report = MyReport(buffer, **meuKwarg)
-        # I can now specify my custom foot  er in runtime!
-        pdf = report.generateReport()
-        #self.response.write(pdf)
-        return pdf
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def pdf(request):
@@ -431,8 +365,45 @@ def pdf(request):
     return response
 
 
+def pdf_label(request):
+    from django.http import FileResponse
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="My Users.pdf"'
+    buffer = BytesIO()
+
+    destinatario = 'HERVAL MÓVEIS'
+    nf = '1223455'
+    volumes = 20
+
+    r = MeuReport()
+
+    vol = []
+    for i in range(volumes):
+        vol.append(i)
+
+    meuKwarg = {}
+    meuKwarg['titulo'] = 'DEFER INDÚSTRIA METALÚRGICA LTDA.'
+    meuKwarg['left_footer'] = 'meu footer'
+    meuKwarg['dados'] = vol
+    meuKwarg['volumes'] = volumes
+    meuKwarg['destinatario'] = destinatario
+
+    report = MyReport(buffer, **meuKwarg)
+    # I can now specify my custom foot  er in runtime!
+    pdf = report.generateReport()
+
+    response = r.linhas
+    return response
+
 
 def rpt_op(request):
+    id = request.GET.get('op_id')
+    data = rpt_op_txt(id)
+    return render(request, 'producao/rpt.html', {'data': data})
+    #return response
+
+
+def rpt_op_old2(request):
     from django.utils.safestring import mark_safe, SafeData
 
     response = HttpResponse()
@@ -511,6 +482,81 @@ def rpt_op(request):
 
 
 
+def rpt_op_html(request):
+    from django.utils.safestring import mark_safe, SafeData
+
+    response = HttpResponse()
+    buffer = BytesIO()
+    id = request.GET.get('op_id')
+    print(f'imprimindo op: {id}' )
+
+    op = OP.objects.get(id=id)
+    op_comp_fis = OP_componente_fisico.objects.filter(op = id).select_related()
+    r = MeuReport()
+    #rel = []
+    #l = str(campo('Código', 15)) +  campo('Descrição', 60) +  campo('Quantidade', 10 + campo('Unid.', 4))
+    r.sub_head('ORDEM DE PRODUÇÃO', 125)
+    r.linha(r.campo('Número OP: ', 15, 'l') +  r.campo(op.num, 20, 'l') +  r.campo('Data emissão: ', 15, 'l') + r.campo(op.data_emissao, 4, 'l'))
+    
+    r.sub_head('PRODUTO', 125)
+    r.linha(r.campo('Código', 15, 'l')
+                + r.campo('Descrição', 60, 'l')
+                + r.campo('Qtd.', 10, 'l')
+                + r.campo('Unid.', 8, 'l')
+                + r.campo('Qtd2', 8, 'l')
+                + r.campo('Unid2', 8, 'l')
+                )
+    r.linha(r.campo(op.produto.cod, 15, 'l')
+                + r.campo(op.produto.desc, 60, 'l')
+                + r.campo(op.qtd_programada, 10, 'l')
+                + r.campo(op.produto.unid, 8, 'l')
+                + r.campo(op.produto.fatorUnid, 8, 'l')
+                + r.campo(op.produto.unid2, 8, 'l')
+                )
+
+    
+    r.sub_head('COMPOSIÇÃO', 125)
+    r.linha(r.campo('Código', 15, 'l')
+                + r.campo('Descrição', 60, 'l')
+                + r.campo('Qtd.', 10, 'l')
+                + r.campo('Unid.', 8, 'l')
+                + r.campo('Qtd2', 8, 'l')
+                + r.campo('Unid2', 8, 'l')
+                )           
+
+    for n in op.op_comp_fis.all():
+        if n:
+            linha = (r.campo(n.produto.cod, 15, 'l') 
+                        + r.campo(n.produto.desc, 60, 'l') 
+                        + r.campo(n.qtd_programada, 10, 'l'))
+            
+            linha = linha + r.campo(n.produto.unid, 8, 'l') if n.produto.unid else linha + r.campo('', 8, 'b')
+            linha = linha + r.campo(n.produto.fatorUnid, 8, 'l') if n.produto.fatorUnid else linha + r.campo('', 8, 'b') 
+            linha = linha + r.campo(n.produto.unid2, 8, 'l') if n.produto.unid2 else linha + r.campo('', 8, 'b')
+                         
+            r.linha(linha)
+
+
+    #response.write(r.show(buffer))
+
+    #meuKwarg = {}
+    #meuKwarg['titulo'] = 'meu titulo'
+    #meuKwarg['left_footer'] = 'meu footer'
+    #meuKwarg['dados'] = r.linhas
+
+    #rep = MyReport(buffer, **meuKwarg)
+    #pdf = rep.generateReport()
+   
+    x = []
+    for l in r.linhas:
+        response.writelines(mark_safe(l))
+        #x.append(mark_safe('EU NAO ENTENDO  \&nbsp; &nbsp; &nbsp; &nbsp;DE NOVO'))
+        #print(l)
+
+    
+
+    return render(request, 'producao/rpt.html', {'data': r.linhas})
+    #return response
 
 
 

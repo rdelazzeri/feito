@@ -1,8 +1,7 @@
-<!-- https://getbootstrap.com/docs/4.0/getting-started/introduction/#starter-template -->
-{% load static %}
 <!doctype html>
 <html lang="en">
   <head>
+    {% load static %}
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -17,15 +16,28 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- Select2 -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-
+    <!--  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" /> -->
+    <link rel="stylesheet" href="{% static '/select2/css/select2.css' %}">
+    <link rel="stylesheet" href="{% static '/autocomplete_light/select2.css' %}">
   
-    <link href="{% static '/css/feito.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static '/css/feito.css' %}" >
     
     <base href="/">
 
       <!-- Custom CSS -->
-
+      <style>
+        .monospace {             
+            font-family: monospace;
+        }
+        .text-mail{
+            font-size: 0.7rem;
+            font-family: monospace;
+            font-size: 0.7rem
+        }
+        .select2-container {
+            min-width: 8em !important;
+        }
+      </style>
 
     {% block css %}{% endblock css %}
 
@@ -45,13 +57,15 @@
 
     {% block scripts %}
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script type="text/javascript" src="{% static '/admin/js/vendor/jquery/jquery.js' %}"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
+    <script type="text/javascript" src="{% static '/admin/js/vendor/jquery/jquery.js' %}"></script> 
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
     <!-- Select2 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script> 
+    
     <!--   <script src="https://unpkg.com/htmx.org@1.6.1"></script>  -->
     <!--   <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>   -->
 
@@ -59,9 +73,10 @@
     <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>  -->
     <!--  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css" rel="stylesheet"/>  -->
     <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>  -->
+    
+    
 
-    <script type="text/javascript" src="{% static '/admin/js/vendor/jquery/jquery.js' %}"></script>
-
+    
     {% endblock scripts %}
 
     {% block js %}{% endblock js %}

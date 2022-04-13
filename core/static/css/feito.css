@@ -21,7 +21,7 @@ body {
   -webkit-line-clamp: 1;
 }
 .select2-container {
-   min-width: 35em !important;
+   min-width: 15em !important;
    height: 39px !important;
 }
 
@@ -46,4 +46,11 @@ label {
   padding: 0.1rem;
   vertical-align: top;
   border-top: 0px solid #dee2e6;
+}
+.monospace {             
+    font-family: monospace;
+}
+
+.text-mail{
+  font-size: 0.7rem;
 }

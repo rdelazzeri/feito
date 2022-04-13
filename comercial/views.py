@@ -33,6 +33,9 @@ from django.utils.timezone import now
 from contextlib import suppress
 from django.utils.safestring import mark_safe
 from django.apps import apps
+from io import BytesIO
+from reports.reports import Label_volumes
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from bootstrap_modal_forms.generic import (
     BSModalLoginView,
@@ -89,7 +92,7 @@ class Pedido_add_item(BSModalCreateView):
 def pedidos_list(request):
     ped = Pedido.objects.all()
     table = PedidosTable(ped)
-    table.paginate(page=request.GET.get("page", 1), per_page=10)
+    table.paginate(page=request.GET.get("page", 1), per_page=2)
     return render(request, 'comercial/pedidos_list.html', {'table': table, 'pedidos': ped})
   
 def pedidos(request):
@@ -342,9 +345,9 @@ def pedidos_prod_search(request):
 
 
 def pedido_item_add(request):
-    if request.method == 'GET':
-        produto = request.GET.get('produto')
-        pedido = request.GET.get('pedido')
+    if request.method == 'POST':
+        produto = request.POST.get('produto')
+        pedido = request.POST.get('pedido')
         print(produto)
         print(pedido)
         ped = Pedido.objects.get(pk=pedido)
@@ -371,10 +374,13 @@ def pedidos_prod_search_table(request):
 
 
 def pedido_item_delete(request):
-    pedido_item = request.GET.get('item_id')
-    it = Pedido_item.objects.get(pk=pedido_item)
-    it.delete()
-    return HttpResponse('Produto excluido')
+    if request.method == 'POST':
+        pedido_item = request.GET.get('item_id')
+        it = Pedido_item.objects.get(pk=pedido_item)
+        it.delete()
+        return HttpResponse('Produto excluido')
+    else:
+        return False
 
 def pedido_full(request, pedido_id):
     pedido = get_object_or_404(Pedido, pk=pedido_id)
@@ -430,55 +436,57 @@ def pedido_full(request, pedido_id):
 
 @transaction.atomic
 def pedido_entrega_add(request):
-    pedido_id = request.GET.get('pedido_id')
-    print(pedido_id)
-    pedido = Pedido.objects.get(pk=pedido_id)
-    cfg = Comercial_config.objects.get(pk=1)
-    novo_num = cfg.num_ult_entrega + 1
-    cfg.num_ult_entrega = novo_num
-    cfg.save()
-    print(novo_num)
-    entrega_new = Entrega()
-    entrega_new.num = novo_num
-    print(entrega_new.num)
-    entrega_new.operacao = pedido.operacao
-    entrega_new.status__id = 1
-    entrega_new.data_cadastro = date.today()
-    entrega_new.data_emissao =  date.today()
-    entrega_new.cliente = pedido.cliente
-    entrega_new.vencimentos = pedido.vencimentos
-    entrega_new.transportadora = pedido.transportadora
-    entrega_new.tipo_frete = pedido.tipo_frete
-    entrega_new.valor_frete = pedido.valor_frete
-    entrega_new.obs = pedido.obs
-    entrega_new.save()
-    print(entrega_new.id)
+    print('comercial.view.entrega_add')
+    if request.method == 'POST':
+        pedido_id = request.POST.get('pedido_id')
+        print(pedido_id)
+        pedido = Pedido.objects.get(pk=pedido_id)
+        cfg = Comercial_config.objects.get(pk=1)
+        novo_num = cfg.num_ult_entrega + 1
+        cfg.num_ult_entrega = novo_num
+        cfg.save()
+        print(novo_num)
+        entrega_new = Entrega()
+        entrega_new.num = novo_num
+        entrega_new.pedido_origem = pedido
+        print(entrega_new.num)
+        entrega_new.operacao = pedido.operacao
+        entrega_new.status__id = 1
+        entrega_new.data_cadastro = date.today()
+        entrega_new.data_emissao =  date.today()
+        entrega_new.cliente = pedido.cliente
+        entrega_new.vencimentos = pedido.vencimentos
+        entrega_new.transportadora = pedido.transportadora
+        entrega_new.tipo_frete = pedido.tipo_frete
+        entrega_new.valor_frete = pedido.valor_frete
+        entrega_new.obs = pedido.obs
+        entrega_new.save()
+        print(entrega_new.id)
 
-    itens = Pedido_item.objects.filter(pedido_id = pedido.id)
-    valtot = 0
-    print(itens)
-    for item in itens:
-        print('entrei no for')
-        entrega_new_item = Entrega_item()
-        print('instanciei o pedido item')
-        entrega_new_item.entrega = entrega_new
-        entrega_new_item.pedido_item = item
-        entrega_new_item.produto = item.produto
-        entrega_new_item.qtd = item.qtd_saldo
-        entrega_new_item.pr_unit = item.pr_unit
-        entrega_new_item.obs = item.obs
-        entrega_new_item.pr_tot = Decimal(item.qtd) * Decimal(item.pr_unit)
-        valtot += entrega_new_item.pr_tot
-        entrega_new_item.save()
-    
-    entrega_new.valor_total_produtos = Decimal(valtot)
-    entrega_new.valor_total_entrega = Decimal(valtot) + Decimal(entrega_new.valor_frete)
-    entrega_new.save()
+        itens = Pedido_item.objects.filter(pedido_id = pedido.id)
+        valtot = 0
+        print(itens)
+        for item in itens:
+            print('entrei no for')
+            entrega_new_item = Entrega_item()
+            print('instanciei o pedido item')
+            entrega_new_item.entrega = entrega_new
+            entrega_new_item.pedido_item = item
+            entrega_new_item.produto = item.produto
+            entrega_new_item.qtd = item.qtd_saldo
+            entrega_new_item.pr_unit = item.pr_unit
+            entrega_new_item.obs = item.obs
+            entrega_new_item.pr_tot = Decimal(item.qtd) * Decimal(item.pr_unit)
+            valtot += entrega_new_item.pr_tot
+            entrega_new_item.save()
+        
+        entrega_new.valor_total_produtos = Decimal(valtot)
+        entrega_new.valor_total_entrega = Decimal(valtot) + Decimal(entrega_new.valor_frete)
+        entrega_new.save()
 
-    return JsonResponse({'entrega_id': entrega_new.id})
-
-    #return JsonResponse({'pedido_id': entrega_new.id})
-    #return redirect('comercial:entrega_detail', entrega_new.id)
+        return JsonResponse({'entrega_id': entrega_new.id})
+    else:
+        return JsonResponse({'entrega_id': 'erro'})
 
 
 
@@ -518,10 +526,23 @@ def entrega_new(request):
         #return render(request, 'comercial/entrega_detail.html', {'form': form})
 
 def entrega_list(request):
-    ent= Entrega.objects.all().select_related('pedido_origem')
+    ent= Entrega.objects.all().select_related('pedido_origem').order_by('-num')
+    paginator = Paginator(ent, 40) # Show 25 contacts per page.
+    
+   
+    page_number = request.GET.get('page', 1)
+
+   
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
     #table = PedidosTable(orc)
     #table.paginate(page=request.GET.get("page", 1), per_page=25)
-    return render(request, 'comercial/entrega_list.html', {'entregas': ent})
+    return render(request, 'comercial/entrega_list.html', {'page_obj': page_obj})
 
 
 
@@ -614,15 +635,18 @@ def entrega_detail(request, entrega_id):
 
 
 def pre_nota_retorno(request):
+    print('Consultando retorno')
     if request.method == 'GET' and request.is_ajax:
         entrega_id = request.GET.get('entrega_id')
         pre_nota = Pre_nota.objects.filter(entrega_id = entrega_id).first()
         print(pre_nota.id)
         ret = NFe_transmissao.objects.filter(pre_nota_id = pre_nota.id).first()
-        print(ret)
+        #print(ret)
         form = EntregaRetornoForm(instance=ret)
-        print(form)
-        data = render_to_string('comercial/entrega_retorno.html', {'form': form, 'ret': ret})
+        #print(form)
+        danfe = ret.danfe
+        xml = ret.xml
+        data = render_to_string('comercial/entrega_retorno.html', {'form': form, 'ret': ret, 'danfe': danfe, 'xml': xml})
         print(data)
         return HttpResponse(data)
 
@@ -651,7 +675,7 @@ def entrega_prod_search(request):
         return render(request, 'comercial/entrega_prod_search.html' )
 
 def entrega_item_add(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         orc = Entrega.objects.get(pk=request.GET.get('entrega_id'))
         prod = Prod.objects.get(pk=request.GET.get('produto_id'))
         orc_it = Entrega_item()
@@ -664,25 +688,30 @@ def entrega_item_add(request):
         return HttpResponse('nao é post')
 
 def entrega_delete(request):
-    entrega_id = request.GET.get('entrega_id')
-    Entrega.objects.filter(pk=entrega_id).delete()
-    entrega_id = int(entrega_id) - 1
-    print(entrega_id)
-    return redirect('comercial:entrega_list')
-
+    if request.method == 'POST':
+        entrega_id = request.POST.get('entrega_id')
+        Entrega.objects.filter(pk=entrega_id).delete()
+        entrega_id = int(entrega_id) - 1
+        print(entrega_id)
+        return redirect('comercial:entrega_list')
+    else:
+        return False
 
 def entrega_item_delete(request):
-    entrega_item = request.GET.get('item_id')
-    it = Entrega_item.objects.get(pk=entrega_item)
-    it.delete()
-    return HttpResponse('Produto excluido')
+    if request.method == 'POST':
+        entrega_item = request.POST.get('item_id')
+        it = Entrega_item.objects.get(pk=entrega_item)
+        it.delete()
+        return HttpResponse('Produto excluido')
+    else:
+        return False
 
 @transaction.atomic
 def pre_nota_add(request):
     print('comercial.views.pre_nota_add')
-    if request.method == 'GET' and request.is_ajax:
-        print('metodo get')
-        entrega_id = request.GET.get('entrega_id')
+    if request.method == 'POST':
+        print('Iniciando processamento da NFe')
+        entrega_id = request.POST.get('entrega_id')
         print('entrega_id: ' + str(entrega_id))
         entrega = Entrega.objects.get(pk=entrega_id)
         print('Número da NF: ' + str(entrega.num_nf))
@@ -958,3 +987,51 @@ def pre_nota_estorno(request):
         m = apps.get_model('estoque.Movimento')
         m.objects.estorno_estoque(entrega_id, 'NF_S')
         return HttpResponse('beleza')
+    else:
+        return False
+
+
+def label(request):
+    id = request.GET.get('id')
+    print(id)
+    if id:
+            
+        ent = Entrega.objects.get(id = id)
+        nf = ent.num_nf if ent.num_nf else ''
+        destinatario = ent.cliente.apelido if ent.cliente.apelido else ''
+        volumes = ent.volumes if ent.volumes else 0
+        if ent.pedido_origem:
+            num_ped = ent.pedido_origem.num if ent.pedido_origem.num else ''
+            num_oc = ent.pedido_origem.num_oc_cli if ent.pedido_origem.num_oc_cli else ''
+        else:
+            num_ped = ''
+            num_oc =''
+
+        lbl_width = 100
+        lbl_height = 50
+        emissor = 'DEFER INDUSTRIA METALURGICA'
+        
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="Relatorio.pdf"'
+        buffer = BytesIO()
+        
+        print('volumes: ', volumes)
+       
+        meuKwarg = {}
+        meuKwarg['width'] = lbl_width
+        meuKwarg['height'] = lbl_height
+        meuKwarg['destinatario'] = destinatario
+        meuKwarg['nf'] = nf
+        meuKwarg['volumes'] = int(volumes) 
+        meuKwarg['emissor'] = emissor
+        meuKwarg['num_ped'] = num_ped
+        meuKwarg['num_oc'] = num_oc
+        print('flag 2')
+
+        rep = Label_volumes(buffer, **meuKwarg)
+        #pdf = rep.generateReport()
+        response.write(rep.show())
+    else:
+        response = "erro"
+    
+    return response

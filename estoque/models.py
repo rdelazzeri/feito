@@ -26,11 +26,11 @@ class MovimentoManager(models.Manager):
         mov.valor = dados['valor']
         mov.tipo = dados['tipo']
         mov.chave = dados['chave']
-        saldo = Decimal(mov.produto.qEstoque) + Decimal(mov.qtd_entrada) - Decimal(mov.qtd_saida)
-        mov.produto.qEstoque = saldo
-        mov.qtd_saldo = saldo
-        mov.produto.save()
-        mov.save()
+        #saldo = Decimal(mov.produto.qEstoque) + Decimal(mov.qtd_entrada) - Decimal(mov.qtd_saida)
+        #mov.produto.qEstoque = saldo
+        #mov.qtd_saldo = saldo
+        #mov.produto.save()
+        #mov.save()
         print('conclui movimento save')
         #return super().save()
 

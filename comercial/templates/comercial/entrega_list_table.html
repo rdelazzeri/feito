@@ -18,7 +18,7 @@
   </tr>
   </thead>
   <tbody>
-  {% for it in entregas %}
+  {% for it in page_obj %}
     <tr>
       <th class="text-center" scope="row">{{ forloop.counter }}</th>
       <td class="text-center">{{ it.num }}</td>
@@ -34,13 +34,44 @@
         <button type="button" id='entrega' class="entrega btn btn-sm btn-primary" data-form-url="{% url 'comercial:entrega_detail' it.pk %}" >
           <span class="fa fa-pencil"></span>
         </button>
-        <!-- Delete book buttons -->
-        <button type="button" class="entrega-delete btn btn-sm btn-danger" data-form-url="{% url 'comercial:entrega_delete'  %}">
+        <!-- Delete book buttons
+        <button type="button" id="delete" class="entrega-delete btn btn-sm btn-danger" data-form-url="{% url 'comercial:entrega_delete' %}">
           <span class="fa fa-trash"></span>
         </button>
+      -->
       </td>
     </tr>
   {% endfor %}
 
   </tbody>
 </table>
+
+<div>
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      {% if page_obj.has_other_pages %}
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="/ent/nf/list?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+        {% else %}
+          <li class="disabled page-link"><span>Anterior</span></li>
+        {% endif %}
+        {% for i in page_obj.paginator.get_elided_page_range %}
+          {% if page_obj.number == i %}
+            <li class="page-item active">
+              <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="/ent/nf/list?page={{ i }}">{{ i }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <li><a class="page-link" href="/ent/nf/list?page={{ page_obj.next_page_number }}">Próxima</a></li>
+        {% else %}
+          <li class="disabled"><span>Próxima</span></li>
+        {% endif %}
+
+      {% endif %}
+    </ul>
+  </nav>
+</div>

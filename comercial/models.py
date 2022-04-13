@@ -240,6 +240,7 @@ def calcula_total_pedido(pedido_id):
 
 class Pedido(models.Model):
     num = models.PositiveIntegerField(default='0', unique=True)
+    num_oc_cli = models.CharField("Número Cliente", max_length=15,  null=True, blank=True)
     operacao = models.ForeignKey(Operacao, on_delete = PROTECT, null=True, blank=True)
     status = models.PositiveIntegerField(choices=STATUS_OPCOES, default=0)
     data_cadastro = models.DateTimeField(blank=True, null=True)
@@ -428,32 +429,21 @@ class Entrega(models.Model):
         ent_tot = Entrega_item.objects.filter(entrega = self).aggregate(TOTAL = Sum('pr_tot'))['TOTAL']
         self.valor_total_produtos = ent_tot
         self.valor_total_entrega = ent_tot + self.valor_frete
-        hoje = datetime.date.today()
-        self.data_emissao = hoje
+        #hoje = datetime.date.today()
+        #self.data_emissao = hoje
         self.save()
-
-        parcelas = str(self.vencimentos).split(sep = '+')
-        num_parc = len(parcelas)
-        val_tot = Decimal(self.valor_total_entrega)
-        val_parc = round((val_tot / num_parc),2)
-        val_parc_saldo = (val_tot - num_parc * val_parc)
-        val_parc_1 = val_parc_saldo + val_parc
-        print('Valor total fatura: ' + str(val_tot) + 'Valor do saldo: ' + str(val_parc_saldo) + 'Valor parcela: ' + str(val_parc) + 'Valor Parcela 1: ' + str(val_parc_1))
+        '''
+        #parcelas = str(self.vencimentos).split(sep = '+')
+        #num_parc = len(parcelas)
+        #val_tot = Decimal(self.valor_total_entrega)
+        #val_parc = round((val_tot / num_parc),2)
+        #val_parc_saldo = (val_tot - num_parc * val_parc)
+        #val_parc_1 = val_parc_saldo + val_parc
+        #print('Valor total fatura: ' + str(val_tot) + 'Valor do saldo: ' + str(val_parc_saldo) + 'Valor parcela: ' + str(val_parc) + 'Valor Parcela 1: ' + str(val_parc_1))
         
         
-        entrega_parcelas = Entrega_parcelas.objects.filter(entrega = self).delete()
-        print('Parcelas deletadas')
-        '''
-        n_parc = entrega_parcelas.count()
-        print('numro de parcelas: ' + str(n_parc))
-        dif_n_parc =  n_parc - num_parc
-        if dif_n_parc > 0:
-            for i in range(dif_n_parc):
-                n = i + num_parc
-                parc = entrega_parcelas[n] 
-                parc.delete()
-                print('parcelas extras deletadas')
-        '''
+        #entrega_parcelas = Entrega_parcelas.objects.filter(entrega = self).delete()
+        #print('Parcelas deletadas')
                 
         for n, parcela in enumerate(parcelas):
             parc = Entrega_parcelas()   
@@ -470,6 +460,7 @@ class Entrega(models.Model):
             print('Vencimentos original: ' + str(self.vencimentos))
             print('Número de parcelas: ' + str(num_parc))
             print('hoje: ' + str(hoje))
+        '''
 
     
 

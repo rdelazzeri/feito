@@ -119,3 +119,24 @@ def novo(request):
         form.save()
         return redirect('view_lista')
     return render(request, 'cadastro/parc_form.html', {'form': form})
+
+
+class NomeAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        print('nome-autocomplete')
+        if not self.request.user.is_authenticated:
+            return Parceiro.objects.none()
+        qs = Parceiro.objects.only('nome')
+        if self.q:
+            qs = qs.filter(nome__icontains=self.q)
+        return qs
+
+class TransportadoraAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        print('transportadora-autocomplete')
+        if not self.request.user.is_authenticated:
+            return Parceiro.objects.none()
+        qs = Parceiro.objects.filter(tipo__sigla = 'T').only('nome')
+        if self.q:
+            qs = qs.filter(nome__icontains=self.q)
+        return qs

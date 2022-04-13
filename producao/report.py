@@ -4,33 +4,57 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
 from pathlib import Path
+from django.utils.safestring import mark_safe, SafeData
+from .models import *
+from core.relatorio_txt import *
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+def rpt_op_txt(id):
+    print(f'imprimindo op: {id}' )
 
-import reportlab
-from django.conf import settings
-reportlab.rl_config.TTFSearchPath.append(str(BASE_DIR) + '/core/fonts')
-#pdfmetrics.registerFont(TTFont('Copperplate', 'Copperplate-Gothic-Bold.ttf'))
+    op = OP.objects.get(id=id)
+    op_comp_fis = OP_componente_fisico.objects.filter(op = id).select_related()
+    r = MeuReport()
 
-pdfmetrics.registerFont(TTFont('Lekton-Regular','Lekton-Regular.ttf'))
+    r.sub_head('ORDEM DE PRODUÇÃO', 125)
+    r.linha(r.campo('Número OP: ', 15, 'l') +  r.campo(op.num, 20, 'l') +  r.campo('Data emissão: ', 15, 'l') + r.campo(op.data_emissao, 4, 'l'))
+    
+    r.sub_head('PRODUTO', 125)
+    r.linha(r.campo('Código', 15, 'l')
+                + r.campo('Descrição', 60, 'l')
+                + r.campo('Qtd.', 10, 'l')
+                + r.campo('Unid.', 8, 'l')
+                + r.campo('Qtd2', 8, 'l')
+                + r.campo('Unid2', 8, 'l')
+                )
+    r.linha(r.campo(op.produto.cod, 15, 'l')
+                + r.campo(op.produto.desc, 60, 'l')
+                + r.campo(op.qtd_programada, 10, 'l')
+                + r.campo(op.produto.unid, 8, 'l')
+                + r.campo(op.produto.fatorUnid, 8, 'l')
+                + r.campo(op.produto.unid2, 8, 'l')
+                )
+
+    r.sub_head('COMPOSIÇÃO', 125)
+    r.linha(r.campo('Código', 15, 'l')
+                + r.campo('Descrição', 60, 'l')
+                + r.campo('Qtd.', 10, 'l')
+                + r.campo('Unid.', 8, 'l')
+                + r.campo('Qtd2', 8, 'l')
+                + r.campo('Unid2', 8, 'l')
+                )           
+
+    for n in op.op_comp_fis.all():
+        if n:
+            linha = (r.campo(n.produto.cod, 15, 'l') 
+                        + r.campo(n.produto.desc, 60, 'l') 
+                        + r.campo(n.qtd_programada, 10, 'l'))
+            
+            linha = linha + r.campo(n.produto.unid, 8, 'l') if n.produto.unid else linha + r.campo('', 8, 'b')
+            linha = linha + r.campo(n.produto.fatorUnid, 8, 'l') if n.produto.fatorUnid else linha + r.campo('', 8, 'b') 
+            linha = linha + r.campo(n.produto.unid2, 8, 'l') if n.produto.unid2 else linha + r.campo('', 8, 'b')
+            r.linha(linha)
+ 
+    return r.rel()
 
 
-canvas = canvas.Canvas("form2.pdf", pagesize=letter)
-canvas.setLineWidth(.3)
-canvas.setFont('Lekton-Regular', 12)
-
-canvas.drawString(30,750,'OFFICIAL COMMUNIQUE')
-canvas.drawString(30,735,'OF ACME INDUSTRIES')
-canvas.drawString(500,750,"12/12/2010")
-canvas.line(480,747,580,747)
-
-canvas.drawString(275,725,'AMOUNT OWED:')
-canvas.drawString(500,725,"$1,000.00")
-canvas.line(378,723,580,723)
-
-canvas.drawString(30,703,'RECEIVED BY:')
-canvas.line(120,700,580,700)
-canvas.drawString(120,703,"JOHN DOE")
-
-canvas.save()

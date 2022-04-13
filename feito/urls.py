@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
-
+admin.site.site_header = 'Sistema Gerencial DEFER'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,5 +16,6 @@ urlpatterns = [
     path('ent/', include('entradas.urls')),
     path('est/', include('estoque.urls')),
     path('pr/', include('producao.urls')),
+    path('rel/', include('reports.urls')),
     
 ]

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% load static %}
+
+{% block content %}
+
+
+<div class="jumbotron">
+    <form method="post" id="form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <h1>Etiquetas para identificação de volumes</h1 >
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                {{ form.emitente|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0 ">
+                {{ form.destinatario|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.num_ped|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.num_oc|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.nf|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.volumes|as_crispy_field }}
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <button type="submit" name="act" value="save" class="btn btn-primary">Emitir</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+
+
+{% endblock content %}

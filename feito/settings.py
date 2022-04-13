@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     #'bootstrap_modal_forms',
     'widget_tweaks',
     'reportlab',
+    'slick_reporting',
 
     #My apps
     'core',
@@ -67,6 +68,7 @@ INSTALLED_APPS = [
     'entradas',
     'cyber_sinc',
     'producao',
+    'reports',
     
     #app de teste de popup
     'modalform',
@@ -165,9 +167,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = 'static/'
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
-STATIC_ROOT = config('MY_STATIC_ROOT'),
-#STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'statics/')
+#STATIC_ROOT = config('MY_STATIC_ROOT'),
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

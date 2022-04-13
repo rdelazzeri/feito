@@ -52,10 +52,13 @@ class Vencimento(models.Model):
 class Plano_contas(models.Model):
     num = models.IntegerField()
     desc = models.CharField(max_length=50)
-    tipo = models.CharField(max_length=2, choices=TIPO_CHOICES)
+    tipo = models.CharField(max_length=2, choices=TIPO_CHOICES, null=True, blank=True)
+    cod_cyber = models.CharField(max_length=12, null=True, blank=True)
+    banco = models.CharField(max_length=1, null=True, blank=True)
+    nivel = models.CharField(max_length=2, null=True, blank=True)
 
     def __str__(self) -> str:
-        return self.desc
+        return self.id
 
 class Status(models.Model):
     desc = models.CharField(max_length=30)

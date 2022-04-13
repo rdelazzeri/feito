@@ -1,3 +1,4 @@
+from email.policy import default
 from random import choices
 from django import forms
 
@@ -14,12 +15,14 @@ from bootstrap_modal_forms.mixins import PopRequestMixin, CreateUpdateAjaxMixin
 from dal import autocomplete
 from financeiro.models import Conta_pagar
 import djhacker
+from datetime import datetime
 
 class OP_detail_form(forms.ModelForm):
 
     qtd_producao = forms.CharField(max_length=15, label='Qtd producao', required=False, widget=forms.TextInput(attrs={'size': '7'}))
     qtd_perdida = forms.CharField(max_length=15, label='Qtd perda', required=False, widget=forms.TextInput(attrs={'size': '7'}))
-    data_producao = forms.DateField(label='Data producao', required=False, widget=forms.DateInput())
+    data_producao = forms.DateField(label='Data producao', required=False, initial=datetime.now(), widget=forms.DateInput(format=('%d/%m/%Y')))
+    encerrar = forms.BooleanField(label='Encerrar OP?', initial=False, required=False)
 
     class Meta:
         model = OP

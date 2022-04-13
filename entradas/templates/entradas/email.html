@@ -1,0 +1,32 @@
+<div class="modal fade" id="email_modal_html" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="send_mail">Enviar Email</h5>
+        
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+            <div class="form-row">
+                <div class="form-group col-md-3 mb-3 justify-content-end">
+                    <label>Pesquisar</label>
+                </div>
+                <div class="form-group col-md-4 mb-0">
+                    <input name="email_to" id="email_to">
+                </div>
+                <div class="form-group col-md-3 mb-0 justify-content-end">
+                    <button type="button" class="btn btn-primary" id="send_email">Enviar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        <div id="email_data"></div>
+        <textarea class="text-mail" id="message" name="story" rows="10" cols="125"></textarea>              
+      </div>
+      <div class="modal-footer">        </div>
+    </div>
+  </div>
+</div>

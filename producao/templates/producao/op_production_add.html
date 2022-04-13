@@ -1,0 +1,42 @@
+{% load crispy_forms_tags %}
+<div class="modal fade" id="producao_save" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+    <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLongTitle">Lançamento de produção realizada</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <div class="form-row">    
+                      <div class="form-group col-md-3 mb-0 " id="fr-qtd-produzida">
+                          {{ form.qtd_producao|as_crispy_field }}
+                      </div>
+                  </div>
+              <div class="form-row"> 
+                      <div class="form-group col-md-3 mb-0" id="fr-qtd-perdida">
+                          {{ form.qtd_perdida|as_crispy_field }}
+                      </div>
+              </div>
+              <div class="form-row"> 
+                      <div class="form-group col-md-3 mb-0" id="fr-data">
+                          {{ form.data_producao|as_crispy_field }}
+                      </div>
+              </div>
+              <div class="form-row"> 
+                      <div class="form-group col-md-3 mb-0" id="fr-data">
+                          {{ form.encerrar|as_crispy_field }}
+                      </div>
+              </div>
+              <div class="form-row"> 
+                      <div class="form-group col-md-2 mb-0">
+                          <button type="button" class="btn btn-primary" id="BX">Gravar produção</button>
+                      </div>
+              </div>
+          </div>
+          <div class="modal-footer">
+          </div>
+    </div>
+  </div>
+</div>

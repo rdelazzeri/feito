@@ -63,6 +63,8 @@ class Parceiro(models.Model):
     #Obs
     obs = models.TextField(max_length=5000, blank=True, null=True)
     suframa = models.CharField(max_length=15, blank=True, null=True)
+    cod_cyber = models.CharField(max_length=15, blank=True, null=True)
+    
 
     def __str__(self):
         return str(self.nome)
@@ -89,3 +91,35 @@ class Endereco(models.Model):
         return self.desc_end
 
 
+class Empresa(models.Model):
+
+    razsoc = models.CharField(max_length=120, verbose_name='Nome',  blank=True, null=True)
+    fantasia = models.CharField(max_length=60, blank=True, null=True)
+    data_cadastro = models.DateField(blank=True, null=True)
+    #docs pj
+    cnpj =CNPJField(masked=True,  blank=True, null=True)
+    #cnpj2 = BRCNPJField(null=True)
+    insc_est = models.CharField(max_length=31,  blank=True, null=True)
+    insc_mun = models.CharField(max_length=31,  blank=True, null=True)
+    #docs PF
+    #endereco
+    logradouro = models.CharField(max_length=60,blank=True, null=True)
+    numero = models.CharField(max_length=15,blank=True, null=True)
+    complemento = models.CharField(max_length=60, blank=True, null=True)
+    bairro = models.CharField(max_length=60, blank=True, null=True)
+    cep = models.CharField(max_length=9, blank=True, null=True)
+    #estado = models.ForeignKey(Estado, blank=True, null=True, on_delete = models.PROTECT)
+    estado = models.CharField(max_length=2, blank=True, null=True)
+    cidade = models.CharField(max_length=60, null=True, blank=True)
+    municipio = models.ForeignKey(Municipio, blank=True, null=True, on_delete = models.PROTECT)
+    #Contato
+    fone1 = models.CharField(max_length=15, blank=True, null=True)
+    fone2 = models.CharField(max_length=15, blank=True, null=True)
+    email_nfe = models.CharField(max_length=500, blank=True, null=True)
+    email_contato = models.CharField(max_length=500, blank=True, null=True)
+    #Obs
+    obs = models.TextField(max_length=5000, blank=True, null=True)
+    suframa = models.CharField(max_length=15, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.razsoc)

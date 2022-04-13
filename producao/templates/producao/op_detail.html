@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% load static %}
+
+{% block css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'select2/css/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'autocomplete_light/select2.css' %}">
+    <link href="{% static '/css/feito.css' %}" rel="stylesheet">
+{% endblock css %}
 
 {% block content %}
 
@@ -19,6 +25,7 @@
                 <a href="/pr/op/list"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="button" id="delete" class="btn btn-primary">Deletar</button>
                 <button type="button" name="rptop" id="imprime-op" class="btn btn-primary">Imprimir</button>
+                <button type="button" name="producao" id="producao" class="btn btn-primary">Produção</button>
             </div>
         </div>
 
@@ -27,22 +34,23 @@
             <div class="form-group col-md-2 mb-0">
                 {{ form.num|as_crispy_field }}
             </div>
-
             <div class="form-group col-md-2 mb-0 ">
                 {{ form.data_emissao|as_crispy_field }}
             </div>
             <div class="form-group col-md-2 mb-0">
                 {{ form.data_previsao|as_crispy_field }}
             </div>
-            <div class="form-group col-md-3 mb-0">
+            <div class="form-group col-md-2 mb-0">
                 {{ form.tempo_estimado|as_crispy_field }}
             </div>
-            <div class="form-group col-md-3 mb-0">
+            <div class="form-group col-md-2 mb-0">
                 {{ form.tempo_realizado|as_crispy_field }}
             </div>
-
+            <div class="form-group col-md-2 mb-0">
+                {{ form.status|as_crispy_field }}
+            </div>
         </div>
-
+ 
         <div class="form-row">
  
             <div class="form-group col-md-6 mb-0">
@@ -73,23 +81,6 @@
 
         </div>
 
-        <div class="form-row">    
-
-            <div class="form-group col-md-3 mb-0 " id="fr-qtd-produzida">
-                {{ form.qtd_producao|as_crispy_field }}
-            </div>
-            <div class="form-group col-md-3 mb-0" id="fr-qtd-perdida">
-                {{ form.qtd_perdida|as_crispy_field }}
-            </div>
-
-            <div class="form-group col-md-3 mb-0" id="fr-data">
-                {{ form.data_producao|as_crispy_field }}
-            </div>
-            <div class="form-group col-md-2 mb-0">
-                <button type="button" class="btn btn-primary" id="BX">Gravar produção</button>
-            </div>
-
-        </div>
 
         <div class="form-row">
             <div class="form-group col-md-2 mb-0">
@@ -124,6 +115,10 @@
             {% include "producao/op_comp_serv_ext_table.html" %}
         </div>
 
+        <div id="op_producao_save">
+            {% include "producao/op_production_add.html" %}
+        </div>
+
 
 
         <div class="form-row" >
@@ -132,6 +127,8 @@
             </div>
         </div>
         
+        
+
     </form>
 
 
@@ -152,6 +149,9 @@
 
 {% include "prod/produto_search.html" %}
 
+
+
+
  
 {% endblock content %}
 
@@ -160,6 +160,7 @@
 
 
 {{ form.media }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script> 
 
 
 
@@ -170,6 +171,12 @@
         tipoProduto = $(this).val()
         $("#pesquisa-prod").modal();
     })
+
+    jQuery.noConflict()("#producao").click(function(){
+        $("#producao_save").modal();
+    })
+
+
 
 </script>
 
@@ -250,6 +257,7 @@
         var fr_data = $("#id_data_producao").val();
         var fr_qtd_produzida = $("#id_qtd_producao").val();
         var fr_qtd_perdida = $("#id_qtd_perdida").val();
+        var fr_encerrar = $("#encerrar").val()
 
         $.ajax({
             type: "GET",
@@ -260,7 +268,12 @@
                     "qtd_perdida": fr_qtd_perdida
             },
             success: function(result){
-                alert("Produção gravada com sucesso")
+                $("#id_data_producao").val('');
+                $("#id_qtd_producao").val('');
+                $("#id_qtd_perdida").val('');
+                $("#id_encerrar").val(false);
+                $("#producao_save").modal('toggle');
+                location.reload();
             },
             error: function(error){
                 alert("Erro na gravação")
@@ -290,11 +303,6 @@
             }
         })
     })
-
-
-
-
-
 
 })($)
 </script>

@@ -211,7 +211,7 @@ class NFe_transmissao(models.Model):
     nfe = models.CharField(max_length=20, null=True, blank=True)
     serie = models.CharField(max_length=3, null=True, blank=True)
     status = models.CharField(max_length=40, null=True, blank=True)
-    motivo = models.CharField(max_length=60, null=True, blank=True)
+    motivo = models.CharField(max_length=300, null=True, blank=True)
     recibo = models.CharField(max_length=100, null=True, blank=True)
     chave = models.CharField(max_length=60, null=True, blank=True)
     modelo = models.CharField(max_length=4, null=True, blank=True)

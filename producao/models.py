@@ -1,3 +1,4 @@
+from unittest.mock import DEFAULT
 from django.db import models 
 from django.apps import apps
 from django.db.models.deletion import CASCADE, PROTECT
@@ -19,6 +20,17 @@ UNIDADE_TEMPO = (
     ('480', 'DIAS 8H')
 )
 
+STATUS_OP = (
+    ('1', 'EMITIDA'),
+    ('2', 'PLANEJADA'),
+    ('3', 'PROGRAMADA'),
+    ('4', 'EM PRODUÇÃO'),
+    ('5', 'PRODUÇÃO PARCIAL'),
+    ('6', 'CONCLUÍDA'),
+    ('7', 'ENCERRADA COM SALDO'),
+    ('8', 'CANCELADA')
+)
+
 class OP(models.Model):
     num = models.BigIntegerField(default=0)
     produto = models.ForeignKey('prod.Prod', on_delete=PROTECT, related_name='OPs')
@@ -34,6 +46,7 @@ class OP(models.Model):
     qtd_perda = models.DecimalField(default=0, null=True, blank=True, max_digits=13, decimal_places=4)
     operador = models.ForeignKey('cadastro.Parceiro', on_delete=PROTECT, null=True, blank=True)
     setor_produtivo = models.CharField(max_length=2, choices=SETOR_PRODUTIVO, null=True, blank=True)
+    status = models.CharField(max_length=1, choices=STATUS_OP, default='1', null=True, blank=True)
 
     def save(self):
         super().save()
@@ -91,7 +104,7 @@ class OP_componente_servico_interno(models.Model):
 
 
     def __str__(self) -> str:
-        return self.produto.produto.desc
+        return self.produto.desc
 
 class OP_componente_servico_externo(models.Model):
     op = models.ForeignKey(OP, on_delete=CASCADE, related_name='op_serv_ext')

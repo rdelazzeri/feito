@@ -16,11 +16,4 @@ urlpatterns = [
     path('nome-autocomplete/', views.NomeAutocomplete.as_view(), name='nome-autocomplete'), 
     path('transportadora-autocomplete/', views.TransportadoraAutocomplete.as_view(), name='transportadora-autocomplete'), 
 
-    #url(r'^j/$', views.pj),
-    #url(r'^s/$', views.pesquisa),
-    #url(r'^ds/$', views.pesq),
-    #url(r's/(?P<pesq>\w+)$', views.pesquisa, name='view_pesquisa'),
-    #url(r'^n/$', views.novo),
-    
-    #url(r'^c(?P<pk>[0-9]{14})/$', views.detalhe_cnpj, name='view_cnpj'),
 ]

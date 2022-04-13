@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+
+{% block css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'select2/css/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'autocomplete_light/select2.css' %}">
+    <link href="{% static '/css/feito.css' %}" rel="stylesheet">
+{% endblock css %}
+
+
 {% block content %}
 
 <div class="jumbotron">
@@ -13,12 +22,13 @@
 
             <div class="form-group col-md-6 mb-0">
                 <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
-                <a href="/com/orcamento/new"> <button type="button" class="btn btn-primary">Novo</button></a>
-                <a href="/com/orcamento/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <a href="/com/entrega/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/com/entrega/list"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="button" id="delete" class="btn btn-primary">Deletar</button>
                 <button type="button" name="nfe" id="prenota-add" class="btn btn-primary">Processa NFe</button>
                 <button type="button" name="nfe" id="retorno" class="btn btn-primary">Consulta NFe</button>
                 <button type="button" name="nfe" id="estorno" class="btn btn-primary">Estorno Estoque</button>
+                <button type="button" name="lbl" id="lbl" class="btn btn-primary">Etiquetas</button>
             </div>
         </div>
 
@@ -124,17 +134,27 @@
 {% include "comercial/entrega_prod_search.html" %}
 {% include "comercial/_modal.html" %}
 
+
+<div class="modal fade" id="retorno_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+      <div class="modal-content">
+          <div id="ret_data"></div>           
+      </div>
+    </div>
+  </div>
+
 {% endblock content %}
 
 {% block extrascripts %}
 
-<script>
+{{ form.media }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script> 
 
+<script>
 $(function () {
     $("#modalFeito").click(function(event){
         event.preventDefault();
         if ($("#entrega-id").text()){
-                //$("#form").submit();
                 var entrega_id = $("#entrega-id").text();
                 $("#pesquisa-prod").modal('show');
             }
@@ -166,8 +186,6 @@ $(function () {
         var produto_id = currentRow.find("td:eq(6)").text();
         var pedido_item_id = currentRow.find("td:eq(8)").text();
         var entrega_id = $("#entrega-id").text();
-
-
         $.ajax({
             type: "GET",
             url: "{% url 'comercial:entrega_item_add' %}",  
@@ -206,24 +224,21 @@ $(function () {
             url: "{% url 'comercial:pre_nota_retorno' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-
-                $(".modal-content").html(result);
-                jQuery.noConflict(); 
-                $("#create-modal").modal('toggle');
-
-                },
+                $("#ret_data").html(result);
+                $("#retorno_modal").modal('toggle');
+            },
             error: function(error){
-                    alert("não foi possível visualizar o retorno")
-                },
+                alert("não foi possível visualizar o retorno")
+            }
         })
-    }
+    };
 
     $("#prenota-add").click(function(event){
         var entrega_id = $("#entrega-id").text();
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: "{% url 'comercial:pre_nota_add' %}",
-            data: {"entrega_id": entrega_id},
+            data: {"entrega_id": entrega_id, csrfmiddlewaretoken: '{{ csrf_token }}'},
             success: function(result){
                 retorno()
             },
@@ -233,8 +248,6 @@ $(function () {
         })
     });
 
-
-
     $("#retorno").click(function(event){
         var entrega_id = $("#entrega-id").text();
         $.ajax({
@@ -242,9 +255,8 @@ $(function () {
             url: "{% url 'comercial:pre_nota_retorno' %}",
             data: {"entrega_id": entrega_id},
             success: function(result){
-                $(".modal-content").html(result);
-                jQuery.noConflict(); 
-                $("#create-modal").modal('toggle');
+                $("#ret_data").html(result);
+                $("#retorno_modal").modal('toggle');
             },
             error: function(error){
                 alert("não foi possível visualizar o retorno")
@@ -269,13 +281,22 @@ $(function () {
         })
     });
 
+    $("#lbl").click(function(event){
+        var entrega_id = $("#entrega-id").text();
+        var url = "{% url 'comercial:label' %}";
+        var data = "?id=" + entrega_id;
+        link = url + data; 
+        window.open(link);
+    });
+
 
     $("#delete").click(function(event){
-        var orcamento_id = $("#entrega-id").text();
+        var entrega_id = $("#entrega-id").text();
+        alert(entrega_id);
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: "{% url 'comercial:entrega_delete' %}",
-            data: {"entrega_id": entrega_id},
+            data: {"entrega_id": entrega_id, csrfmiddlewaretoken: '{{ csrf_token }}'},
             success: function(result){
                 alert("Entrega Excluída com sucesso")
             },

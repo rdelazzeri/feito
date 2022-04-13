@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+{% block css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'select2/css/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'autocomplete_light/select2.css' %}">
+    <link href="{% static '/css/feito.css' %}" rel="stylesheet">
+{% endblock css %}
+
 {% block content %}
 {% include "comercial/_modal.html" %}
 
@@ -13,21 +20,24 @@
             </div>
             <div class="form-group col-md-6 mb-0">
                 <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
-                <a href="/com/new"> <button type="button" class="btn btn-primary">Novo</button></a>
-                <a href="/com/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <a href="/com/pedido/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/com/pedido_full/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="submit" name="act" value="delete" class="btn btn-primary">Deletar</button>
                 <button type="button" name="nfe" id="entrega-add" class="btn btn-primary">Gerar Entrega</button>
 
             </div>
         </div>
         <div class="form-row">
-            <div class="form-group col-md-4 mb-0">
+            <div class="form-group col-md-3 mb-0">
                 {{ form.num|as_crispy_field }}
             </div>
-            <div class="form-group col-md-4 mb-0">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.num_oc_cli|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
                 {{ form.status|as_crispy_field }}
             </div>
-            <div class="form-group col-md-4 mb-0">
+            <div class="form-group col-md-3 mb-0">
                 {{ form.operacao|as_crispy_field }}
             </div>
         </div>
@@ -99,9 +109,22 @@
 
 {% include "comercial/prod_search.html" %}
 
+<div class="modal fade" id="alert_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+      <div class="modal-content">
+          <div id="alert_data"></div>           
+      </div>
+    </div>
+  </div>
+
+
+
 {% endblock content %}
 
 {% block extrascripts %}
+
+{{ form.media }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script> 
 
 <script>
 
@@ -132,9 +155,9 @@ $(function () {
         var prod = currentRow.find("td:eq(0)").text();
         var pedido_id = $("#pedido-id").text();
         $.ajax({    
-            type: "GET",
+            type: "POST",
             url: "{% url 'comercial:pedido_item_add' %}",
-            data: {"produto": prod, "pedido": pedido_id},
+            data: {"produto": prod, "pedido": pedido_id, csrfmiddlewaretoken: '{{ csrf_token }}'},
             success: function(result){
                 location.reload();
                 $("#pesquisa-prod").modal('toggle'); 
@@ -149,9 +172,9 @@ $(function () {
         var currentRow = $(this).closest("tr"); 
         var item_id = currentRow.find("td:eq(10) input").val();
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: "{% url 'comercial:pedido_item_delete' %}",
-            data: {"item_id": item_id},
+            data: {"item_id": item_id, csrfmiddlewaretoken: '{{ csrf_token }}'},
             success: function(result){
                 location.reload();
             },
@@ -163,15 +186,15 @@ $(function () {
     $("#entrega-add").click(function(event){
         var pedido_id = $("#pedido-id").text();
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: "{% url 'comercial:pedido_entrega_add' %}",
-            data: {"pedido_id": pedido_id},
+            data: {"pedido_id": pedido_id, csrfmiddlewaretoken: '{{ csrf_token }}'},
             success: function(result){
-                entrega=JSON.stringify(result);
-                alert("Entrega criada com sucesso. Num: " + entrega)
+                entrega=JSON.stringify(result["entrega_id"]);
+                alert(entrega)
             },
             error: function(error){
-                alert(error)
+                alert(error["error"])
             }
 
         })

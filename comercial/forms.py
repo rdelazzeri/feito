@@ -13,7 +13,7 @@ from django.forms.formsets import BaseFormSet
 from decimal import Decimal
 from core.services import *
 from django.forms import Form, ModelForm, DateField, widgets
-
+from dal import autocomplete
 from bootstrap_modal_forms.forms import BSModalModelForm, BSModalForm
 from bootstrap_modal_forms.mixins import PopRequestMixin, CreateUpdateAjaxMixin
 
@@ -45,6 +45,17 @@ class OrcamentoDetailForm(forms.ModelForm):
     class Meta:
         model = Orcamento
         fields = '__all__' 
+        widgets = {
+            'cliente': autocomplete.ModelSelect2(
+                url='cadastro:nome-autocomplete',
+                attrs={'data-minimum-input-length': 3,
+                },
+                ),
+            'transportadora': autocomplete.ModelSelect2(
+                url='cadastro:transportadora-autocomplete',
+                attrs={'data-minimum-input-length': 3, 'size': '3'},
+                ),
+        }
 
 
 class Orcamento_itens_BaseFormSet(BaseFormSet):
@@ -99,8 +110,20 @@ class PedidoDetailForm(forms.ModelForm):
     class Meta:
         model = Pedido
         fields = '__all__'
+        widgets = {
+            'cliente': autocomplete.ModelSelect2(
+                url='cadastro:nome-autocomplete',
+                attrs={'data-minimum-input-length': 3,
+                },
+                ),
+            'transportadora': autocomplete.ModelSelect2(
+                url='cadastro:transportadora-autocomplete',
+                attrs={'data-minimum-input-length': 3,},
+                ),
+        }
 
-   
+
+
 
 class Pedido_itens_BaseFormSet(BaseFormSet):
     def clean(self): 
@@ -181,6 +204,14 @@ class EntregaDetailForm(forms.ModelForm):
         widgets = {
             'obs': forms.Textarea(attrs={'rows':3, 'cols':6}),
             'obs_nf': forms.Textarea(attrs={'rows':3, 'cols':6}),
+            'cliente': autocomplete.ModelSelect2(
+                url='cadastro:nome-autocomplete',
+                attrs={'data-minimum-input-length': 3,},
+                ),
+            'transportadora': autocomplete.ModelSelect2(
+                url='cadastro:transportadora-autocomplete',
+                attrs={'data-minimum-input-length': 3,},
+                ),
         }
 
 class EntregaRetornoForm(forms.ModelForm):

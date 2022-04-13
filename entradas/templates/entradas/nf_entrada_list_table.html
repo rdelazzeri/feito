@@ -2,7 +2,7 @@
 
 
 <table id="list-table" class="table">
-    <thead>
+  <thead>
     <tr>
       <th class="text-center" scope="col">#</th>
       <th class="text-center" scope="col">Número</th>
@@ -12,11 +12,11 @@
       <th class="text-center" scope="col">Fornecedor</th>
       <th class="text-center" scope="col">Valor da nota</th>
       <th class="text-center" scope="col">Obs</th>
-      <th class="text-center" scope="col">Read / Update / Delete</th>
+      <th class="text-center" scope="col">Ver</th>
     </tr>
-    </thead>
-    <tbody>
-    {% for it in lista %}
+  </thead>
+  <tbody>
+    {% for it in page_obj %}
       <tr>
         <th class="text-center" scope="row">{{ forloop.counter }}</th>
         <td class="text-center">{{ it.num }}</td>
@@ -27,10 +27,11 @@
         <td class="text-center">{{ it.valor_total_nota }}</td>
         <td class="clamp">{{ it.obs }}</td>
         <td class="text-center">
-          <!-- Read book buttons -->
+          <!-- Read book buttons
           <button type="button" class="read btn btn-sm btn-primary" data-form-url="{% url 'entradas:nf_entrada_read' it.pk %}">
             <span class="fa fa-eye"></span>
           </button>
+          -->
           <!-- open pedido full -->
           <button type="button" id='detail' class="detail btn btn-sm btn-primary" data-form-url="{% url 'entradas:nf_entrada_detail' it.pk %}" >
             <span class="fa fa-pencil"></span>
@@ -38,6 +39,37 @@
         </td>
       </tr>
     {% endfor %}
-  
-    </tbody>
-  </table>
+
+  </tbody>
+</table>
+
+  <div>
+    <nav aria-label="Page navigation example">
+      <ul class="pagination">
+        {% if page_obj.has_other_pages %}
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="/ent/nf/list?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% else %}
+            <li class="disabled page-link"><span>Anterior</span></li>
+          {% endif %}
+          {% for i in page_obj.paginator.get_elided_page_range %}
+            {% if page_obj.number == i %}
+              <li class="page-item active">
+                <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+              </li>
+            {% else %}
+              <li class="page-item">
+                <a class="page-link" href="/ent/nf/list?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <li><a class="page-link" href="/ent/nf/list?page={{ page_obj.next_page_number }}">Próxima</a></li>
+          {% else %}
+            <li class="disabled"><span>Próxima</span></li>
+          {% endif %}
+
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+
