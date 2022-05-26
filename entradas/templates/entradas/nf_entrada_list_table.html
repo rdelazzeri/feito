@@ -1,13 +1,12 @@
 
 
 
-<table id="list-table" class="table">
-  <thead>
+<table id="list-table" class="table table-hover">
+  <thead class="thead-light ">
     <tr>
       <th class="text-center" scope="col">#</th>
       <th class="text-center" scope="col">Número</th>
       <th class="text-center" scope="col">Data de Emissão</th>
-      <th class="text-center" scope="col">Status</th>
       <th class="text-center" scope="col">Operacao</th>
       <th class="text-center" scope="col">Fornecedor</th>
       <th class="text-center" scope="col">Valor da nota</th>
@@ -16,12 +15,11 @@
     </tr>
   </thead>
   <tbody>
-    {% for it in page_obj %}
+    {% for it in page_obj.object_list %}
       <tr>
         <th class="text-center" scope="row">{{ forloop.counter }}</th>
         <td class="text-center">{{ it.num }}</td>
         <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT"}}</td>
-        <td class="text-center">{{ it.status }}</td>
         <td class="text-center">{{ it.operacao }}</td>
         <td class="text-center">{{ it.parceiro }}</td>
         <td class="text-center">{{ it.valor_total_nota }}</td>
@@ -48,24 +46,40 @@
       <ul class="pagination">
         {% if page_obj.has_other_pages %}
           {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="/ent/nf/list?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% if 'num' in request.get_full_path %}
+              <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="{% url 'entradas:nf_entrada_list' %}?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% endif %}
           {% else %}
             <li class="disabled page-link"><span>Anterior</span></li>
           {% endif %}
+          
+          
           {% for i in page_obj.paginator.get_elided_page_range %}
             {% if page_obj.number == i %}
               <li class="page-item active">
                 <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
               </li>
             {% else %}
-              <li class="page-item">
-                <a class="page-link" href="/ent/nf/list?page={{ i }}">{{ i }}</a></li>
+              {% if 'num' in request.get_full_path %}
+                <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ i }}">{{ i }}</a></li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="{% url 'entradas:nf_entrada_list' %}?page={{ i }}">{{ i }}</a></li>
+              {% endif %}
             {% endif %}
           {% endfor %}
+
+
           {% if page_obj.has_next %}
-            <li><a class="page-link" href="/ent/nf/list?page={{ page_obj.next_page_number }}">Próxima</a></li>
+            {% if 'num' in request.get_full_path %}
+              <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ page_obj.next_page_number }}">Próxima</a></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+            {% endif %}
+
           {% else %}
-            <li class="disabled"><span>Próxima</span></li>
+            <li class="disabled page-link "><span>Próxima</span></li>
           {% endif %}
 
         {% endif %}

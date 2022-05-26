@@ -13,13 +13,13 @@ from core.rpt_linha_pdf import *
 import core.label_pdf as lbl
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .filters import *
 
 def nf_entrada_list(request):
-    lista = NF_entrada.objects.all().order_by('-data_emissao')
-    paginator = Paginator(lista, 20) # Show 25 contacts per page.
-    
+
+    lista = NF_Filter(request.GET, queryset=NF_entrada.objects.all().order_by('-data_emissao'))
+    paginator = Paginator(lista.qs, 20) # Show 25 contacts per page.
     page_number = request.GET.get('page', 1)
-    
 
     try:
         page_obj = paginator.get_page(page_number)
@@ -28,13 +28,15 @@ def nf_entrada_list(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
-    return render(request, 'entradas/nf_entrada_list.html', {'page_obj': page_obj })
+    return render(request, 'entradas/nf_entrada_list.html', {'page_obj': page_obj, 'lista': lista})
 
 def nf_entrada_filter(request):
+
     lista = NF_entrada.objects.all().order_by('-data_emissao')
     paginator = Paginator(lista, 20) # Show 25 contacts per page.
     
     page_number = request.GET.get('page', 1)
+
 
     try:
         page_obj = paginator.get_page(page_number)
@@ -197,13 +199,14 @@ def formset_parcelas(**kwargs):
         if formset_parcelas.is_valid():
             print('formset_parcelas válido')
             for p in formset_parcelas:
-                parc_id = p.cleaned_data.get('parc_id')
-                parc_data = Conta_pagar.objects.get(id=parc_id)
-                parc_data.vencimento = p.cleaned_data.get('venc')
-                parc_data.valor_parcela = p.cleaned_data.get('valor')
-                parc_data.save()
-                print(parc_data.entrada)
-                print(p.cleaned_data.get('venc'))
+                if p.cleaned_data.get('parc_id'):
+                    parc_id = p.cleaned_data.get('parc_id')
+                    parc_data = Conta_pagar.objects.get(id=parc_id)
+                    parc_data.vencimento = p.cleaned_data.get('venc')
+                    parc_data.valor_parcela = p.cleaned_data.get('valor')
+                    parc_data.save()
+                    #print(parc_data.entrada)
+                    #print(p.cleaned_data.get('venc'))
             return True
         else:
             return False
@@ -252,7 +255,8 @@ def nf_entrada_detail(request, pk):
                             itens_data.aliq_ipi = it.cleaned_data.get('aliq_ipi')
                             itens_data.save()
 
-                if formset_parcelas(request = request.POST):    
+                if formset_parcelas(request = request.POST):
+                    print('ok com parcelas')    
                     return redirect('entradas:nf_entrada_detail', nf.id)
                 else:
                     print('erro em formset parcelas')

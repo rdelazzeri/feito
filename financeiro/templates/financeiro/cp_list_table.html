@@ -6,14 +6,16 @@
   <thead class="thead-light ">
   <tr>
     <th class="text-center" scope="col">#</th>
-    <th class="text-center" scope="col">Entrega</th>
-    <th class="text-center" scope="col">NF</th>
-    <th class="text-center" scope="col">Status</th>
-    <th class="text-center" scope="col">Operacao</th>
-    <th class="text-center" scope="col">Cliente</th>
-    <th class="text-center" scope="col">Valor da entrega</th>
-    <th class="text-center" scope="col">Data do cadastro</th>
+    <th class="text-center" scope="col">Fornecedor</th>
     <th class="text-center" scope="col">Data emissão</th>
+    <th class="text-center" scope="col">Num Doc</th>
+    <th class="text-center" scope="col">Parcela</th>
+    <th class="text-center" scope="col">Valor_parcela</th>
+    <th class="text-center" scope="col">Vencimento</th>
+    <th class="text-center" scope="col">Valor pago</th>
+    <th class="text-center" scope="col">Data pagamento</th>
+    <th class="text-center" scope="col">Conta</th>
+    <th class="text-center" scope="col">Status</th>
     <th class="text-center" scope="col">Read / Update / Delete</th>
   </tr>
   </thead>
@@ -21,17 +23,19 @@
   {% for it in page_obj.object_list %}
     <tr>
       <th class="text-center" scope="row">{{ forloop.counter }}</th>
-      <td class="text-center">{{ it.num }}</td>
-      <td class="text-center">{{ it.num_nf }}</td>
+      <td class="text-center">{{ it.parceiro }}</td>
+      <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ it.nf_num }}</td>
+      <td class="text-center">{{ it.parcela_num }}</td>
+      <td class="text-center">{{ it.valor_parcela }}</td>
+      <td class="text-center">{{ it.data_vencimento|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ it.valor_pago }}</td>
+      <td class="text-center">{{ it.data_pagamento|date:"SHORT_DATE_FORMAT"}}</td>
+      <td class="text-center">{{ it.conta_caixa }}</td>
       <td class="text-center">{{ it.status }}</td>
-      <td class="text-center">{{ it.operacao }}</td>
-      <td class="text-center">{{ it.cliente }}</td>
-      <td class="text-center">{{ it.valor_total_entrega }}</td>
-      <td class="text-center">{{ it.data_cadastro|date:"SHORT_DATE_FORMAT" }}</td>
-      <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT"}}</td>
       <td class="text-center">
         <!-- open pedido full -->
-        <button type="button" id='entrega' class="entrega btn btn-sm btn-primary" data-form-url="{% url 'comercial:entrega_detail' it.pk %}" >
+        <button type="button" id='detail' class="detail btn btn-sm btn-primary" data-form-url="{% url 'financeiro:cp_detail' it.pk %}" >
           <span class="fa fa-pencil"></span>
         </button>
         <!-- Delete book buttons

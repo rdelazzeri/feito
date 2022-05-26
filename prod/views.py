@@ -16,6 +16,101 @@ from django.template.loader import render_to_string
 from django.http.response import HttpResponse
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from io import BytesIO
+from core.relatorio_txt import *
+from django.utils.safestring import mark_safe, SafeData
+from datetime import datetime, timedelta
+
+
+
+
+
+
+
+def atu_cmv():
+    qr = Prod.objects.all()
+    for it in qr:
+        it.cmv = it.prCusto
+        it.save()
+
+def print_comp3(request, prod):
+        pr = Prod.objects.get(id=prod)
+        print('Árvore de produto')
+        print(pr.cod, ' - ', pr.desc)
+        print('Custo do produto: ', print_comp2(prod))
+        return HttpResponse('feito')
+
+def custo_composto(prod, custo, n=0):
+    qr = ProdComp.objects.filter(codProd=prod)
+    for it in qr:
+        print('>', it.id, ' - ', it.codComp.desc, ' - ', it.codComp.cmv, ' - ', custo)
+        qr2 = ProdComp.objects.filter(codProd=it.codComp)
+        if qr2.count() > 0:
+            for it2 in qr2:
+                print('>>', it2.codComp.id, ' - ',  it2.codComp.desc, ' - ', it2.codComp.cmv, ' - ', custo)
+                custo = custo_composto(it2.codComp, custo, n+1) * it2.qtd
+                print(n+1)
+        else:
+            cmv = it.codComp.cmv if it.codComp.cmv else 0
+            custo += (cmv * it.qtd)
+            print('>>>', it.id, ' - ', it.codComp.desc, ' - ', custo)
+    return custo
+
+
+def print_comp(request, prod):
+    lst=[]
+    lst.insert(0, 0) 
+    lst.insert(1, 0) 
+    lst = print_comp2(prod, lst)
+    response = []
+    response.append(mark_safe(lst[1]))
+    for l in lst:
+        try:
+            response.append(mark_safe(l['linha']))
+        except:
+            pass
+    return render(request, 'producao/rpt.html', {'data': response})
+
+def print_comp2(prod, pilha, nivel=0):
+    qr = ProdComp.objects.filter(codProd=prod)
+    custo = 0
+    tab = '&nbsp;' * 3
+    if qr.count() > 0:
+        for it in qr:
+            item = {}
+            ret = []
+            ret = print_comp2(it.codComp.id, pilha, nivel+1)
+            print(it)
+            #print('Ret[0] : ', ret[0])
+            valor_unit =ret[0]
+            custo += valor_unit * it.qtd
+            verb = tab*nivel +  '>' + it.codComp.cod + ' - ' + it.codComp.desc + ' - ' + str(it.qtd) + ' - ' + str(valor_unit) + ' - ' + str(custo)
+            
+            item['cod'] = it.codComp
+            item['desc'] = it.codComp.desc
+            item['unid'] = it.codComp.unid
+            item['qtd'] = it.qtd
+            item['custo_unit'] = valor_unit
+            item['custo_tot'] = custo
+            item['nivel'] = nivel
+            item['linha'] = verb
+            #print(verb)
+           
+        ret.append(item)  
+        return ret
+    else:
+        if Prod.objects.get(id = prod):
+            pr = Prod.objects.get(id = prod)
+            custo = pr.cmv if pr.cmv else 0
+            pilha[0] = custo
+            pilha[1] += custo
+            verb = tab*nivel +  '>' + pr.cod + ' - ' + pr.desc + ' - ' + str(valor_unit) + ' - ' + str(custo)
+            item['linha'] = verb
+            pilha.append()
+        else:
+            pilha[0] = 0
+        return pilha
+
 
 
 def produto_search(request):

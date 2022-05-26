@@ -16,6 +16,7 @@ from django.forms import Form, ModelForm, DateField, widgets
 from dal import autocomplete
 from bootstrap_modal_forms.forms import BSModalModelForm, BSModalForm
 from bootstrap_modal_forms.mixins import PopRequestMixin, CreateUpdateAjaxMixin
+from django.contrib.admin.widgets import AdminDateWidget
 
 
 class PedidoModelForm(BSModalModelForm):
@@ -42,6 +43,8 @@ class PedidoFilterForm(BSModalForm):
 #
 #--------------------------------------
 class OrcamentoDetailForm(forms.ModelForm):
+    data_cadastro = forms.DateField(widget=AdminDateWidget())
+    
     class Meta:
         model = Orcamento
         fields = '__all__' 
@@ -192,7 +195,7 @@ class Pedido_itens_formset(forms.Form):
 class EntregaDetailForm(forms.ModelForm):
     num_nf = forms.CharField(disabled=True)
     num = forms.CharField(disabled=True)
-    data_cadastro = forms.CharField(disabled=True)
+    data_cadastro = forms.CharField(disabled=False)
     data_emissao = forms.CharField(disabled=True)
     valor_total_produtos = forms.CharField(disabled=True)
     valor_total_entrega = forms.CharField(disabled=True)
@@ -213,6 +216,7 @@ class EntregaDetailForm(forms.ModelForm):
                 attrs={'data-minimum-input-length': 3,},
                 ),
         }
+
 
 class EntregaRetornoForm(forms.ModelForm):
     class Meta:

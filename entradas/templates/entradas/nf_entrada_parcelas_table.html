@@ -1,6 +1,6 @@
 {{ formset_parcelas.management_form }}
 
-<table id="itens-table" class = table.paleblue >
+<table id="parc-table" class = table.paleblue >
   <tbody>
       <div class="container-lg">
         {% for it in formset_parcelas %}
@@ -10,7 +10,7 @@
                 <p class="card-text">{{ it.num.label }}{{ it.num }}</p>
                 <p class="card-text">{{ it.venc.label }}{{ it.venc }}</p>
                 <p class="card-text">{{ it.valor.label }}{{ it.valor }}</p>
-                <p style="display: none;" >{{ it.item_id }}</p>
+                <p style="display: none;" >{{ it.parc_id }}</p>
               </div>
             </div>
           </td>

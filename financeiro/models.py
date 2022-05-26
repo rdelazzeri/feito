@@ -57,8 +57,8 @@ class Plano_contas(models.Model):
     banco = models.CharField(max_length=1, null=True, blank=True)
     nivel = models.CharField(max_length=2, null=True, blank=True)
 
-    def __str__(self) -> str:
-        return self.id
+    def __str__(self):
+        return str(self.desc)
 
 class Status(models.Model):
     desc = models.CharField(max_length=30)
@@ -80,7 +80,7 @@ class Origem(models.Model):
     desc = models.CharField(max_length=20)
     tipo = models.CharField(max_length=2, choices=TIPO_CHOICES)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.desc
 
 class Conta_receber(models.Model):
@@ -96,7 +96,7 @@ class Conta_receber(models.Model):
     banco = models.ForeignKey(Banco, on_delete=PROTECT, null=True, blank=True)
     origem = models.ForeignKey(Origem, on_delete=PROTECT, null=True, blank=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return 'num.: ' + str(self.parcela_num) + ' val: ' + str(self.valor_parcela)
 
 
@@ -107,10 +107,11 @@ class Conta_pagar_manager(models.Manager):
 
 class Conta_pagar(models.Model):
     entrada = models.ForeignKey('entradas.NF_entrada', on_delete=CASCADE, null=True, blank=True, related_name='parcelas')
-    nf_num = models.IntegerField(default=0)
-    parcela_num = models.IntegerField(default=0)
+    parceiro = models.ForeignKey('cadastro.Parceiro', on_delete=CASCADE, null=True, blank=True, related_name='contas_pagar')
+    num_nf = models.IntegerField(default=0)
+    num_parcela = models.IntegerField(default=0)
     data_emissao = models.DateField(null=True, blank=True)
-    vencimento = models.DateField(null=True, blank=True)
+    data_vencimento = models.DateField(null=True, blank=True)
     valor_parcela = models.DecimalField(decimal_places=2, max_digits=13, default=0)
     conta_caixa = models.ForeignKey(Plano_contas, on_delete=PROTECT, null=True, blank=True)
     data_pagamento = models.DateField(null=True, blank=True)
@@ -118,9 +119,11 @@ class Conta_pagar(models.Model):
     status = models.ForeignKey(Status, on_delete=PROTECT, null=True, blank=True)
     banco = models.ForeignKey(Banco, on_delete=PROTECT, null=True, blank=True)
     origem = models.ForeignKey(Origem, on_delete=PROTECT, null=True, blank=True)
-
-    def __str__(self) -> str:
-        return 'num.: ' + str(self.parcela_num) + ' val: ' + str(self.valor_parcela)
+    
+    def __str__(self):
+        #return 'num.: ' + str(self.parcela_num) + ' val: ' + str(self.valor_parcela)
+        return str(self.id)
+    
 
 class Diario(models.Model):
     data = models.DateField()
@@ -130,7 +133,7 @@ class Diario(models.Model):
     credito = models.DecimalField(max_digits=13, decimal_places=2, default=0)
     debito = models.DecimalField(max_digits=13, decimal_places=2, default=0)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.desc
         
 

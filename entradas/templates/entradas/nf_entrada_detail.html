@@ -158,6 +158,45 @@
 <script>
 
 
+    (function($){
+        $("#parcelas").click(function(){
+            var fr_id = $("#fr-id").text();
+            $.ajax({
+                type: "GET",
+                url: "{% url 'entradas:nf_entrada_parcelas_create' %}",
+                data: {"id": fr_id},
+                success: function(result){
+                    $("#parcelas-table").html(result);
+                },
+                error: function(error){
+                    alert("Falha ao gerar parcelas")
+                }
+            })
+        });
+
+        $("#parcelas-delete").click(function(event){
+        var fr_id = $("#fr-id").text();
+            $.ajax({
+                type: "GET",
+                url: "{% url 'entradas:nf_entrada_parcelas_delete' %}",
+                data: {"id": fr_id},
+                success: function(result){
+                    $("#parcelas-table").html(result);
+                },
+                error: function(error){
+                    alert("Falha ao excluir parcelas")
+                }
+
+            })
+            });
+
+        })(jQuery);
+</script>
+
+
+
+
+<script>
 (function ($) {
     jQuery.noConflict()("#modalFeito").click(function(event){
         event.preventDefault();
@@ -243,42 +282,7 @@
 })($)
 </script>
 
-<script>
-    jQuery.noConflict()("#parcelas").click(function(event){
 
-        var fr_id = $("#fr-id").text();
-        $.ajax({
-            type: "GET",
-            url: "{% url 'entradas:nf_entrada_parcelas_create' %}",
-            data: {"id": fr_id},
-            success: function(result){
-                $("#parcelas-table").html(result);
-            },
-            error: function(error){
-                alert("Falha ao gerar parcelas")
-            }
-
-        })
-    });
-
-    jQuery.noConflict()("#parcelas-delete").click(function(event){
-
-        var fr_id = $("#fr-id").text();
-        $.ajax({
-            type: "GET",
-            url: "{% url 'entradas:nf_entrada_parcelas_delete' %}",
-            data: {"id": fr_id},
-            success: function(result){
-                $("#parcelas-table").html(result);
-            },
-            error: function(error){
-                alert("Falha ao excluir parcelas")
-            }
-
-        })
-    });
-
-</script>
 
 
 

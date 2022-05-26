@@ -2,12 +2,13 @@ from asyncio.windows_events import NULL
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from prod.models import Prod, Prod, Grupo, Unid, NCM, ProdComp
+from prod.models import Prod, Prod, Grupo, Unid, NCM, ProdComp, OrigemFiscal
 from cadastro.models import Parceiro, Tipo_parceiro
 from entradas.models import NF_entrada, NF_entrada_itens, Operacao_entrada
 from comercial.models import Entrega, Entrega_item, Operacao, Pedido, Pedido_item
 from financeiro.models import Plano_contas
 import firebirdsql
+from datetime import datetime
 from django.utils.dateparse import parse_date
 
 @login_required()
@@ -124,6 +125,14 @@ def cyber_sinc_ncm(request):
 def prod_sinc_cyber(request):
     template_name = 'cyber_sinc/cyber_sinc.html'
     
+    try:
+        of = OrigemFiscal.objects.get(cod = '1')
+    except:
+        of = OrigemFiscal()
+        of.cod = '1'
+        of.desc = 'Nacional'
+        of.save()
+
     ###
     conn = firebirdsql.connect(dsn='localhost:/cybersul/banco/dadosadm.fdb', user='sysdba', password='masterkey', charset='ISO8859_1')
     cur = conn.cursor()
@@ -259,9 +268,17 @@ def cyber_sinc_pessoa(request):
                 """)
     #Prod.objects.all().delete()
     Parceiro.objects.all().delete()
-
-    tipo_parc = Tipo_parceiro.objects.get(sigla='C')
-    print('Tipo de parceiro cliente selecionado: ' + str(tipo_parc))
+    try:
+        tipo_parc = Tipo_parceiro.objects.get(sigla='C')
+        print('Tipo de parceiro cliente selecionado: ' + str(tipo_parc))
+    except:
+        tipo_parc = Tipo_parceiro()
+        tipo_parc.sigla = 'C'
+        tipo_parc.desc = 'Cliente'
+        tipo_parc.save()
+        print('tipo parceiro salvo: ', tipo_parc.sigla)
+        tipo_parc = Tipo_parceiro.objects.get(sigla='C')
+        print('tipo parceiro get: ', tipo_parc.sigla)
 
     for c in cur.fetchall():
         parc = Parceiro()
@@ -284,6 +301,7 @@ def cyber_sinc_pessoa(request):
         parc.fone1 = c[12]
         parc.fone2 = c[13]
         parc.save()
+        print(parc.nome)
         parc.tipo.add(tipo_parc)
 
 
@@ -308,7 +326,7 @@ def cyber_sinc_pessoa(request):
                 FFONE2,
                 FOBS2,
                 FTIPO,
-                CEP
+                FCEP
             FROM augc0501
             ORDER BY FNOME
                 """)
@@ -318,14 +336,30 @@ def cyber_sinc_pessoa(request):
     for c in cur.fetchall():
 
         try:
+            tipo_parc = Tipo_parceiro.objects.get(sigla='F')
+            print('Tipo de parceiro cliente selecionado: ' + str(tipo_parc))
+        except:
+            tipo_parc = Tipo_parceiro()
+            tipo_parc.sigla = 'F'
+            tipo_parc.desc = 'FORNECEDOR'
+            tipo_parc.save()
+
+
+        try:
             parc = Parceiro.objects.get(nome = c[2])
             parc.obs = str(parc.obs) + str(c[0])
-            parc.tipo.add(Tipo_parceiro.objects.get(sigla='F'))
+            parc.tipo.add(tipo_parc)
+           
             if c[15] != 'F':
                 try:
                     parc.tipo.add(Tipo_parceiro.objects.get(sigla = c[15]))
                 except:
-                    pass
+                    tipo_parc = Tipo_parceiro()
+                    tipo_parc.sigla = c[15]
+                    tipo_parc.desc = 'nd'
+                    tipo_parc.save()
+                    parc.tipo.add(tipo_parc)
+            parc.save()
         except:
             parc = Parceiro()
             parc.obs = c[0]
@@ -354,7 +388,11 @@ def cyber_sinc_pessoa(request):
                 try:
                     parc.tipo.add(Tipo_parceiro.objects.get(sigla = c[15]))
                 except:
-                    pass
+                    tipo_parc = Tipo_parceiro()
+                    tipo_parc.sigla = c[15]
+                    tipo_parc.desc = 'nd'
+                    tipo_parc.save()
+                    parc.tipo.add(tipo_parc)
     conn.close()
 
     context = {'context': 'Clientes feito'}
@@ -363,7 +401,7 @@ def cyber_sinc_pessoa(request):
 
 
 
-##-----------------------notas
+##-----------------------notas de entrada
 
 
 
@@ -566,6 +604,10 @@ def cyber_sinc_nf_ei(request):
 #Operacao
 def cyber_sinc_operacao_saida(request):
     template_name = 'cyber_sinc/cyber_sinc.html'
+
+    #usar se precisar deletar
+    Operacao.objects.all().delete()
+
     conn = firebirdsql.connect(dsn='localhost:/cybersul/banco/dadosadm.fdb', user='sysdba', password='masterkey', charset='ISO8859_1')
     cur = conn.cursor()
     cur.execute("""
@@ -635,7 +677,7 @@ def cyber_sinc_nf_s(request):
                 from acem1401 A
                 JOIN afvc0901 B ON (OPERACAO_DOC = COD_OP)
                 JOIN AUGC0301 C ON (COD_CLI = C.CODIGO_CLIENTE)
-                where data > '2011-01-01'
+                where data > '2022-01-01'
                         AND ENTRADA_SAIDA = 'S'
                 order by documento
                 """)
@@ -655,6 +697,7 @@ def cyber_sinc_nf_s(request):
         pedit.pedido = ped
         pedit.produto = prod
         pedit.save()
+        print('pedido generico salvo')
 
     c =  cur.fetchone()
     while c:
@@ -685,12 +728,17 @@ def cyber_sinc_nf_s(request):
         except:
             nf = Entrega()
 
+
+        dt = str(c[4])[0:10]
+
         nf.num = c[0]
         nf.num_nf = c[0]
         nf.cliente = parc[0]
         nf.operacao = op
+        nf.status = 2
         nf.pedido_origem = ped
-        nf.data_emissao = parse_date(c[4])
+        nf.data_cadastro = datetime.strptime(dt, '%Y-%m-%d')
+        nf.data_emissao = datetime.strptime(dt, '%Y-%m-%d')
         nf.valor_frete = c[12]
         nf.tipo_frete = c[17] if c[17] else '2'
         nf.save()
@@ -723,7 +771,7 @@ def cyber_sinc_nf_si(request):
                 IPI_ITEM,
                 OBSERVACAO_PRODUTO
             FROM ACEM14IT
-            where data > '2011-01-01'
+            where data > '2022-01-01'
                     AND SERIE = 'E1'
             
                 """)
@@ -733,7 +781,7 @@ def cyber_sinc_nf_si(request):
     #for c in cur.fetchall():
 
     pedit = Pedido_item.objects.filter(pedido__num = 0).first()
-    print(pedit)
+    print('pedit: ', pedit)
     c =  cur.fetchone()
     while c:
 
@@ -743,8 +791,8 @@ def cyber_sinc_nf_si(request):
             prod = Prod.objects.get(cod = '999')
 
         try:
-            nf = Entrega.objects.get(num_nf = c[0] )
-            print(c[0])
+            nf = Entrega.objects.get(num_nf = int(c[0]) )
+            print('nf recuperada', c[0])
             nfi = Entrega_item()
             nfi.entrega = nf
             nfi.produto = prod

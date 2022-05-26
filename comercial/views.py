@@ -36,6 +36,7 @@ from django.apps import apps
 from io import BytesIO
 from reports.reports import Label_volumes
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .filters import Entregas_Filter
 
 from bootstrap_modal_forms.generic import (
     BSModalLoginView,
@@ -526,13 +527,11 @@ def entrega_new(request):
         #return render(request, 'comercial/entrega_detail.html', {'form': form})
 
 def entrega_list(request):
-    ent= Entrega.objects.all().select_related('pedido_origem').order_by('-num')
-    paginator = Paginator(ent, 40) # Show 25 contacts per page.
-    
-   
+
+    lista = Entregas_Filter(request.GET, queryset=Entrega.objects.all().select_related('pedido_origem').order_by('-num'))
+    paginator = Paginator(lista.qs, 20) # Show 25 contacts per page.
     page_number = request.GET.get('page', 1)
 
-   
     try:
         page_obj = paginator.get_page(page_number)
     except PageNotAnInteger:
@@ -540,24 +539,25 @@ def entrega_list(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
-    #table = PedidosTable(orc)
-    #table.paginate(page=request.GET.get("page", 1), per_page=25)
-    return render(request, 'comercial/entrega_list.html', {'page_obj': page_obj})
+    return render(request, 'comercial/entrega_list.html', {'page_obj': page_obj, 'lista': lista})
 
 
 
 def entrega_detail(request, entrega_id):
+    print('detelhas da entrega: ', entrega_id)
     entrega = get_object_or_404(Entrega, pk=entrega_id)
+    print(entrega)
     cliente_id = entrega.cliente_id
     entrega_itens = Entrega_item.objects.select_related('pedido_item__pedido').filter(entrega = entrega.id)
     entrega_itens_formset = formset_factory(Entrega_itens_formset, Entrega_itens_BaseFormSet, extra=0 )
     parcelas = Entrega_parcelas.objects.filter(entrega=entrega)    
     p = ''
+    context = []
     for parc in parcelas:
         dt = parc.vencimento
         vc = dt.strftime('%d/%m/%y')
         p = p + 'Venc.: ' + vc + ' Val.: ' + str(parc.valor_parcela) + '\n'
-
+    print('parcelas: ', p)
     entrega_itens_initial = [{
                 'item_id': item.id,
                 'pedido': item.pedido_item.pedido.num,
@@ -572,19 +572,20 @@ def entrega_detail(request, entrega_id):
                 }for item in entrega_itens]
     
     formset = entrega_itens_formset(initial = entrega_itens_initial)
-
+    print('passei pelo formset')
     if request.method == 'POST':
         print('é post')
-        #verifica se já existe uma nota emitida e aprovada
-        pre_nota = Pre_nota.objects.filter(entrega = entrega).first()
         
+        #verifica se já existe uma nota emitida e aprovada
+        #se já existir nf, não permite alterações
+        pre_nota = Pre_nota.objects.filter(entrega = entrega).first()
         if pre_nota:
             #print('pre_nota: ' + str(pre_nota.count()))
             ret = NFe_transmissao.objects.filter(pre_nota = pre_nota).first()
             print('status da transmissao: ' + str(ret.status))
-
             if ret.erro():
                 print('NFe não aprovada')
+
         form = EntregaDetailForm(request.POST, instance = entrega)
         formset = entrega_itens_formset(request.POST)
         #print(formset)
@@ -598,15 +599,15 @@ def entrega_detail(request, entrega_id):
                     if id:
                         new_qtd = it.cleaned_data.get('qtd')
                         item_id = it.cleaned_data.get('item_id')
-                        codigo = item_id
+                        #codigo = item_id
                         print(it.cleaned_data)
                         if item_id:
                             itens_data = Entrega_item.objects.get(pk=item_id)
                             itens_data.qtd = new_qtd
                             itens_data.pr_unit = it.cleaned_data.get('pr_unit')
+                         
                             #atualiza NCM do produto direto da tela da entrega
-                            #tem que digitar o código correspondente na tabela
-                                                            
+                            #tem que digitar o código correspondente na tabela                                  
                             ncm_cod = it.cleaned_data.get('ncm')
                             print(ncm_cod)
 
@@ -627,9 +628,16 @@ def entrega_detail(request, entrega_id):
                 return redirect('comercial:entrega_detail', entrega.id)
             else:
                 print(formset.non_form_errors())
-                
+        else:
+            print('Form inválido')
+            print(form.errors)
+            #context['form_errors'] = form.errors
+
+    print('passei pelo post')            
     
     form = EntregaDetailForm(instance  = entrega)
+
+    #context['form'] = form
     print(entrega.id)
     return render(request, 'comercial/entrega_detail.html', {'form': form, 'formset': formset, 'entrega_id': entrega.id, 'cliente_id': cliente_id, 'parcelas': p})
 

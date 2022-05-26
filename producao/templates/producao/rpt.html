@@ -21,9 +21,6 @@
             }             
 
             p {
-                
-                font-family: monospace;
-                font-size: x-small;
                 line-height: normal;
                 margin-top: 0;
                 margin-bottom: 0;
@@ -49,17 +46,13 @@
     </head>
 
     <body>
-        
         <div target="_blank">
-            {% for l in data %}
-                <p>
-                    {{l}}
-                </p> 
-            {% endfor %}
+                {% for l in data %}
+                    <p><samp>
+                        {{l}}
+                    </p></samp>
+                {% endfor %}
         </div>
-
-
-
     </body>
 
 

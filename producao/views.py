@@ -10,7 +10,6 @@ from .report import *
 from core.relatorio_txt import *
 from django.db import transaction
 from django.utils.safestring import mark_safe
-
 from datetime import datetime, timedelta
 
 class ProdutoAutocomplete(autocomplete.Select2QuerySetView):

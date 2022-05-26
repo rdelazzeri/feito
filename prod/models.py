@@ -55,6 +55,7 @@ class Prod(models.Model):
     desc = models.CharField("Descrição", max_length=50)
     compl = models.CharField("Complemento", max_length=50, blank=True, null=True)
     tipoProduto = models.ForeignKey(TipoProduto, on_delete = PROTECT, blank=True, null=True)
+    nivel= models.IntegerField(blank=True, null=True, default=0)
     grupo = models.ForeignKey(Grupo, on_delete = PROTECT, blank=True, null=True)
     subGrupo = models.ForeignKey(SubGrupo, on_delete = PROTECT, blank=True, null=True)
     grupoCyber = models.IntegerField(blank=True, null=True)
@@ -91,6 +92,10 @@ class Prod(models.Model):
     modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
     modificadoPor = models.ForeignKey(User, related_name='prod_modificou', on_delete=models.CASCADE, blank=True, null=True)
 
+    class Meta:
+        verbose_name = 'Produto'
+        verbose_name_plural = 'Produtos'
+
     def __str__(self):
         return self.cod + ' - ' + self.desc 
 
@@ -102,6 +107,10 @@ class ProdComp(models.Model):
     criadoPor = models.ForeignKey(User, related_name='prodcomp_criou', on_delete=models.CASCADE, blank=True, null=True)
     modificado = models.DateTimeField(auto_now=True, blank=True, null=True)
     modificadoPor = models.ForeignKey(User, related_name='prodcomp_modificou', on_delete=models.CASCADE, blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Composição'
+        verbose_name_plural = 'Composição'
 
     def __str__(self):
             return str(self.codProd.pk) + ' - ' + str(self.codComp.desc)

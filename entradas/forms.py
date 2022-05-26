@@ -103,15 +103,14 @@ class NF_entrada_parcelas_BaseFormSet(BaseFormSet):
            # Don't bother validating the formset unless each form is valid on its own
            print(self.errors)
            return
-
         for form in self.forms:
-            print(form.cleaned_data['parc_id'])
+            print('parc_id: ', form.cleaned_data['parc_id'])
             
 
 
 class NF_entrada_parcelas_formset(forms.Form):
-    parc_id = forms.CharField(max_length=30, label='ID', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '8'}))
-    num = forms.IntegerField(label='Número', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '8'}))
+    parc_id = forms.CharField(max_length=30, label='ID', required=False, disabled=False, widget=forms.TextInput(attrs={'size': '8'}))
+    num = forms.IntegerField(label='Número', required=False, disabled=False, widget=forms.TextInput(attrs={'size': '8'}))
     venc = forms.DateField(label='Vencimento', required=False, disabled=False, widget=forms.DateInput(attrs={'size': '8'}))
     valor = forms.CharField(max_length=60, label='Valor', required=False, disabled=False, widget=forms.TextInput(attrs={'size': '8'}))
 
@@ -180,5 +179,4 @@ class OC_itens_formset(forms.Form):
     aliq_ipi = forms.CharField(max_length=15, label='% IPI', required=False, widget=forms.TextInput(attrs={'size': '7'}))
     valor_ipi = forms.CharField(max_length=15, label='Val. IPI', required=False, disabled=True, widget=forms.TextInput(attrs={'size': '7'}))
     obs = forms.CharField(max_length=15, label='% IPI', required=False, widget=forms.TextInput(attrs={'size': '20'}))
-
 
