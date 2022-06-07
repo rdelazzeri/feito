@@ -48,154 +48,20 @@
 {% endblock content %}
 
 {% block extrascripts %}
-
 <script type="text/javascript">
-  $(".entrega").click(function(){
+
+  $(".detail").click(function(){
     var url = $(this).attr('data-form-url');
-    location.href = url
+    location.href = url  
   });
 
-  $("#gera_pedido").click(function(event){
-        var orcamento = $("#orcamento-id").text();
-        $.ajax({
-            type: "GET",
-            url: "{% url 'comercial:orcamento_pedido_add' %}",
-            data: {"orcamento": orcamento},
-            success: function(result){
-                alert("Pedido criado com sucesso")
-            },
-            error: function(error){
-                alert(error)
-            }
+  $(".read").click(function(){
+    var url = $(this).attr('data-form-url');
+    $(this).modalForm({formURL: $(this).data("form-url")}); 
+  });
 
-        })
-    });
-
-  $("#filter").click(function () {  
-      $("#filtro").modal('toggle')
+  $("#filter-pedido").click(function () {
+    $("#filtro").modal('toggle')
   });
 </script>
-
-  <script type="text/javascript">
-
-      $(function () {
-          // Create pedido synchronous
-          function createBookSyncModalForm() {
-            $("#create-pedido-sync").modalForm({
-                formURL: "{% url 'comercial:pedido_create' %}",
-                modalID: "#create-modal"
-            });
-          }
-          createBookSyncModalForm();
-
-          // Create pedido asynchronous button
-          // message
-          var asyncSuccessMessageCreate = [
-            "<div ",
-            "style='position:fixed;top:0;z-index:10000;width:100%;border-radius:0;' ",
-            "class='alert alert-icon alert-success alert-dismissible fade show mb-0' role='alert'>",
-            "Success: pedido was created.",
-            "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>",
-            "<span aria-hidden='true'>&times;</span>",
-            "</button>",
-            "</div>",
-            "<script>",
-            "$('.alert').fadeTo(2000, 500).slideUp(500, function () {$('.alert').slideUp(500).remove();});",
-            "<\/script>"
-          ].join("");
-
-          // modal form
-          function createBookAsyncModalForm() {
-            $("#create-pedido-async").modalForm({
-                formURL: "{% url 'comercial:pedido_create' %}",
-                modalID: "#create-modal",
-                asyncUpdate: true,
-                asyncSettings: {
-                  closeOnSubmit: true,
-                  successMessage: asyncSuccessMessageCreate,
-                  dataUrl: "pedidos",
-                  dataElementId: "#pedidos-table",
-                  dataKey: "table",
-                  addModalFormFunction: reinstantiateModalForms
-                }
-            });
-          }
-          createBookAsyncModalForm();
-
-          // Update pedido asynchronous button
-          // message
-          var asyncSuccessMessageUpdate = [
-            "<div ",
-            "style='position:fixed;top:0;z-index:10000;width:100%;border-radius:0;' ",
-            "class='alert alert-icon alert-success alert-dismissible fade show mb-0' role='alert'>",
-            "Success: pedido was updated.",
-            "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>",
-            "<span aria-hidden='true'>&times;</span>",
-            "</button>",
-            "</div>",
-            "<script>",
-            "$('.alert').fadeTo(2000, 500).slideUp(500, function () {$('.alert').slideUp(500).remove();});",
-            "<\/script>"
-          ].join("");
-
-          // modal form
-          function updateBookModalForm() {
-            $(".update-pedido").each(function () {
-              $(this).modalForm({
-                formURL: $(this).data("form-url"),
-                asyncUpdate: true,
-                asyncSettings: {
-                  closeOnSubmit: false,
-                  successMessage: asyncSuccessMessageUpdate,
-                  dataUrl: "pedidos",
-                  dataElementId: "#pedidos-table",
-                  dataKey: "table",
-                  addModalFormFunction: reinstantiateModalForms
-                }
-              });
-            });
-          }
-          updateBookModalForm();
-
-          
-
-          
-
-
-
-
-            // Delete pedido buttons - formURL is retrieved from the data of the element
-          function deleteBookModalForm() {
-            $(".delete-pedido").each(function () {
-                $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
-            });
-          }
-          deleteBookModalForm();
-
-          // Read pedido buttons
-          function readBookModalForm() {
-            $(".read-pedido").each(function () {
-                $(this).modalForm({formURL: $(this).data("form-url")});
-            });
-          }
-          readBookModalForm();
-
-          function reinstantiateModalForms() {
-            createBookAsyncModalForm();
-            readBookModalForm();
-            updateBookModalForm();
-            deleteBookModalForm();
-          }
-
-          // Filter books button
-          $("#filter-pedido").each(function () {
-              $(this).modalForm({formURL: $(this).data("form-url")});
-          });
-
-          // Hide message
-          $(".alert").fadeTo(2000, 500).slideUp(500, function () {
-              $(".alert").slideUp(500);
-          });
-      });
-  </script>
 {% endblock extrascripts %}

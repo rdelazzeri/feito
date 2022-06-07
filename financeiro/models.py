@@ -119,6 +119,7 @@ class Conta_pagar(models.Model):
     status = models.ForeignKey(Status, on_delete=PROTECT, null=True, blank=True)
     banco = models.ForeignKey(Banco, on_delete=PROTECT, null=True, blank=True)
     origem = models.ForeignKey(Origem, on_delete=PROTECT, null=True, blank=True)
+    obs = models.TextField(null=True, blank=True)
     
     def __str__(self):
         #return 'num.: ' + str(self.parcela_num) + ' val: ' + str(self.valor_parcela)
@@ -136,5 +137,16 @@ class Diario(models.Model):
     def __str__(self):
         return self.desc
         
+
+class CC(models.Model):
+    data = models.DateField()
+    desc = models.CharField(max_length=40)
+    parceiro = models.ForeignKey(Parceiro, on_delete=PROTECT)
+    credito = models.DecimalField(max_digits=13, decimal_places=2, default=0)
+    debito = models.DecimalField(max_digits=13, decimal_places=2, default=0)
+    saldo = models.DecimalField(max_digits=13, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.desc
 
 
