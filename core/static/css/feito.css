@@ -21,9 +21,11 @@ body {
   -webkit-line-clamp: 1;
 }
 .select2-container {
-   min-width: 15em !important;
-   height: 39px !important;
+  min-width: 4em !important;
+  height: 39px !important;
+  width: auto !important;
 }
+
 
 .form-control {
    height: 39px !important;

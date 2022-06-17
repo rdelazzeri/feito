@@ -11,6 +11,13 @@ from django.forms import ModelForm, fields, Form
 #from decimal import Decimal
 from dal import autocomplete
 
+CP_OPCOES = (
+    ('0','Ações em lote'),
+    ('1','Baixar com data de hoje'),
+    ('2','Baixar com data do vencimento'),
+    ('3', 'Somar')
+)
+
 
 class CP_detail_form(ModelForm):
     
@@ -23,12 +30,17 @@ class CP_detail_form(ModelForm):
             'parceiro': autocomplete.ModelSelect2(
                 url='cadastro:nome-autocomplete',
                 attrs={'data-minimum-input-length': 3,
+                        'dropdownAutoWidth': True,
                 },
                 ),
             'entrada': autocomplete.ModelSelect2(
                 url='financeiro:entrada-autocomplete',
                 attrs={'data-minimum-input-length': 3,
+                        'dropdownAutoWidth': True,
                 },
                 ),
             
         }
+
+class CP_acoes_lote_form(Form):
+    opcoes = forms.ChoiceField(choices = CP_OPCOES, label="")

@@ -5,7 +5,7 @@
 <table id="entrega-list-table" class="table table-hover">
   <thead class="thead-light ">
   <tr>
-    <th class="text-center" scope="col">#</th>
+    <th class="text-center chkAll" scope="col"><input type="checkbox" onclick="toggle(this);"></th>
     <th class="text-center" scope="col">Fornecedor</th>
     <th class="text-center" scope="col">Data emissão</th>
     <th class="text-center" scope="col">Num Doc</th>
@@ -16,13 +16,14 @@
     <th class="text-center" scope="col">Data pagamento</th>
     <th class="text-center" scope="col">Conta</th>
     <th class="text-center" scope="col">Status</th>
-    <th class="text-center" scope="col">Read / Update / Delete</th>
+    <th class="text-center" scope="col">Detalhes</th>
   </tr>
   </thead>
   <tbody>
   {% for it in page_obj.object_list %}
     <tr>
-      <th class="text-center" scope="row">{{ forloop.counter }}</th>
+      <!-- <th class="text-center" scope="row">{{ forloop.counter }}</th> -->
+      <td class="text-center chk" ><input type="checkbox" name="chk" value="{{ it.pk }}"></td>
       <td class="text-center">{{ it.parceiro }}</td>
       <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT" }}</td>
       <td class="text-center">{{ it.nf_num }}</td>
@@ -33,6 +34,7 @@
       <td class="text-center">{{ it.data_pagamento|date:"SHORT_DATE_FORMAT"}}</td>
       <td class="text-center">{{ it.conta_caixa }}</td>
       <td class="text-center">{{ it.status }}</td>
+      
       <td class="text-center">
         <!-- open pedido full -->
         <button type="button" id='detail' class="detail btn btn-sm btn-primary" data-form-url="{% url 'financeiro:cp_detail' it.pk %}" >

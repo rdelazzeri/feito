@@ -1,11 +1,12 @@
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404, HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .filters import CP_Filter
-from .forms import CP_detail_form
+from .forms import *
 from .models import Conta_pagar
 from cadastro.models import Parceiro
 from entradas.models import NF_entrada
 from dal import autocomplete
+import json
 
 
 
@@ -29,10 +30,29 @@ class EntradaAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(parceiro__nome__icontains=self.q)
         return qs
 
-
 def cp_list(request):
     lista = CP_Filter(request.GET, queryset=Conta_pagar.objects.all().order_by('-data_vencimento'))
     paginator = Paginator(lista.qs, 20) # Show 25 contacts per page.
+    page_number = request.GET.get('page', 1)
+
+    lote = CP_acoes_lote_form()
+
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    return render(request, 'financeiro/cp_list.html', {'page_obj': page_obj, 'lista': lista, 'lote': lote})
+
+
+
+def cp_filter(request):
+
+    lista = Conta_pagar.objects.all().order_by('-data_emissao')
+    paginator = Paginator(lista, 20) # Show 25 contacts per page.
+    
     page_number = request.GET.get('page', 1)
 
     try:
@@ -42,7 +62,17 @@ def cp_list(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
-    return render(request, 'financeiro/cp_list.html', {'page_obj': page_obj, 'lista': lista})
+    return render(request, 'financeiro/cp_list.html', {'page_obj': page_obj })
+
+def cp_lote(request):
+
+    chkeds = request.POST.get('chkeds')
+    opt = request.POST.get('opt')
+    print("Estes são os selecionados", chkeds, " com esta opcao: ", opt )
+    dict = {'ret': "oi"}
+    return HttpResponse(json.dumps(dict), content_type='application/json')
+
+
 
 def cp_detail(request, pk):
     cp = get_object_or_404(Conta_pagar, pk=pk)

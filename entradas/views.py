@@ -16,7 +16,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .filters import *
 
 def nf_entrada_list(request):
-
     lista = NF_Filter(request.GET, queryset=NF_entrada.objects.all().order_by('-data_emissao'))
     paginator = Paginator(lista.qs, 20) # Show 25 contacts per page.
     page_number = request.GET.get('page', 1)
@@ -36,7 +35,6 @@ def nf_entrada_filter(request):
     paginator = Paginator(lista, 20) # Show 25 contacts per page.
     
     page_number = request.GET.get('page', 1)
-
 
     try:
         page_obj = paginator.get_page(page_number)
