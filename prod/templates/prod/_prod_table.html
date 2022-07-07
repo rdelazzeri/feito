@@ -1,8 +1,19 @@
-<table id="prod-table" class="table">
+<style>
+  .list-table {
+  margin-bottom: 0rem;
+  margin-top: 0rem;
+  padding: 0.1rem;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  line-height: 0,7;
+  height: 25px;
+}
+</style>
+
+<table id="prod-table" class="table list-table">
   <thead>
   <tr>
     <th class="text-center" scope="col">#</th>
-    <th class="text-center" scope="col">ID</th>
     <th class="text-center" scope="col">Código</th>
     <th class="text-center" scope="col">Descrição</th>
   </tr>
@@ -11,10 +22,9 @@
   {% for prod in prods %}
     <tr>
       <th class="text-center" scope="row">{{ forloop.counter }}</th>
-      <td class="text-center codSelect">{{ prod.id }}</td>
       <td class="text-center codSelect">{{ prod.cod }}</td>
       <td class="text-left">{{ prod.desc }}</td>
-      <td><button class="btnSelect btn btn-primary">Select</button></td>
+      <td><button class="btnSelect btn btn-primary" id="{{ prod.id }}">&check;</button></td>
       
     </tr>
   {% endfor %}

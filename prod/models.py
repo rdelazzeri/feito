@@ -75,6 +75,7 @@ class Prod(models.Model):
     qMult = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="Qtd. Múltipla de compra", blank=True, null=True)
     qEco = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="Qtd. Econômica", blank=True, null=True)
     pzEnt = models.DecimalField(max_digits=15, decimal_places=3, verbose_name="Prazo Entrega", blank=True, null=True)
+    ativo = models.BooleanField('Ativo', default=True)
     #Impostos
     origemFiscal = models.ForeignKey(OrigemFiscal, on_delete = PROTECT, default=1, blank=True, null=True)
     ipiCompra = models.DecimalField(max_digits=4, decimal_places=2, verbose_name="IPI Compra", blank=True, null=True)

@@ -1,0 +1,99 @@
+
+
+
+
+<table id="entrega-list-table" class="table table-hover">
+  <thead class="thead-light ">
+  <tr>
+    <th class="text-center chkAll" scope="col"><input type="checkbox" onclick="toggle(this);"></th>
+    <th class="text-center" scope="col">Fornecedor</th>
+    <th class="text-center" scope="col">Data emissão</th>
+    <th class="text-center" scope="col">Num Doc</th>
+    <th class="text-center" scope="col">Parcela</th>
+    <th class="text-center" scope="col">Valor_parcela</th>
+    <th class="text-center" scope="col">Vencimento</th>
+    <th class="text-center" scope="col">Valor pago</th>
+    <th class="text-center" scope="col">Data pagamento</th>
+    <th class="text-center" scope="col">Conta</th>
+    <th class="text-center" scope="col">Status</th>
+    <th class="text-center" scope="col">Detalhes</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for it in page_obj.object_list %}
+    <tr>
+      <!-- <th class="text-center" scope="row">{{ forloop.counter }}</th> -->
+      <td class="text-center chk" ><input type="checkbox" name="chk" value="{{ it.pk }}"></td>
+      <td class="text-center">{{ it.parceiro }}</td>
+      <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ it.nf_num }}</td>
+      <td class="text-center">{{ it.parcela_num }}</td>
+      <td class="text-center">{{ it.valor_parcela }}</td>
+      <td class="text-center">{{ it.data_vencimento|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ it.valor_pago }}</td>
+      <td class="text-center">{{ it.data_pagamento|date:"SHORT_DATE_FORMAT"}}</td>
+      <td class="text-center">{{ it.conta_caixa }}</td>
+      <td class="text-center">{{ it.status }}</td>
+      
+      <td class="text-center">
+        <!-- open pedido full -->
+        <button type="button" id='detail' class="detail btn btn-sm btn-primary" data-form-url="{% url 'financeiro:cr_detail' it.pk %}" >
+          <span class="fa fa-pencil"></span>
+        </button>
+        <!-- Delete book buttons
+        <button type="button" id="delete" class="entrega-delete btn btn-sm btn-danger" data-form-url="{% url 'comercial:entrega_delete' %}">
+          <span class="fa fa-trash"></span>
+        </button>
+      -->
+      </td>
+    </tr>
+  {% endfor %}
+
+  </tbody>
+</table>
+
+<div>
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      {% if page_obj.has_other_pages %}
+        {% if page_obj.has_previous %}
+          {% if 'num' in request.get_full_path %}
+            <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="{% url 'comercial:entrega_list' %}?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% endif %}
+        {% else %}
+          <li class="disabled page-link"><span>Anterior</span></li>
+        {% endif %}
+        
+        
+        {% for i in page_obj.paginator.get_elided_page_range %}
+          {% if page_obj.number == i %}
+            <li class="page-item active">
+              <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+            </li>
+          {% else %}
+            {% if 'num' in request.get_full_path %}
+              <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ i }}">{{ i }}</a></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="{% url 'comercial:entrega_list' %}?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+
+        {% if page_obj.has_next %}
+          {% if 'num' in request.get_full_path %}
+            <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ page_obj.next_page_number }}">Próxima</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="{% url 'comercial:entrega_list' %}?page={{ page_obj.next_page_number }}">Próxima</a></li>
+          {% endif %}
+
+        {% else %}
+          <li class="disabled page-link "><span>Próxima</span></li>
+        {% endif %}
+
+      {% endif %}
+    </ul>
+  </nav>
+</div>

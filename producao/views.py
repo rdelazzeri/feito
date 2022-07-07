@@ -11,6 +11,8 @@ from core.relatorio_txt import *
 from django.db import transaction
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta
+from prod.forms import SearchProdForm
+from django.http import JsonResponse
 
 class ProdutoAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -37,26 +39,37 @@ def op_delitem(request):
 
 @transaction.atomic
 def op_comp_fis_add(request):
-    if request.method == 'GET':
-        op = OP.objects.get(id = int(request.GET.get('id')))
-        prod = Prod.objects.get(id = int(request.GET.get('produto')))
-        if prod.tipoProduto.cod == 'CO':
+    if request.method == 'POST':
+        op = OP.objects.get(id = int(request.POST.get('id')))
+        prod = Prod.objects.get(id = int(request.POST.get('produto')))
+        
+        try:
+            if prod.tipoProduto.cod == 'CO':
+                it = OP_componente_fisico()
+            elif prod.tipoProduto.cod == 'SI':
+                it = OP_componente_servico_interno()
+            elif prod.tipoProduto.cod == 'SE':
+                it = OP_componente_servico_externo()
+            else:
+                it = OP_componente_fisico()
+        except:
             it = OP_componente_fisico()
-        elif prod.tipoProduto.cod == 'SI':
-            it = OP_componente_servico_interno()
-        elif prod.tipoProduto.cod == 'SE':
-            it = OP_componente_servico_externo()
+
         it.op = op
         it.produto = prod
         it.qtd_programada = 1
         it.save()
-        return HttpResponse('Produto adicionado')
+               
+        data={}
+        data['status'] = 'Produto adicionado com sucesso'
+        return JsonResponse(data)
     else:
         return HttpResponse('nao é post')
 
 
 def op_new(request):
     print('op_new/00')
+    search_prod_form = SearchProdForm()
     if request.method == "POST":
         print('op_new/01')
         form = OP_detail_form(request.POST)
@@ -67,11 +80,11 @@ def op_new(request):
             return redirect('producao:op_detail', fr.id) 
         else:
             print('op_new/03')
-            return render(request, 'producao/op_detail.html', {'form': form})     
+            return render(request, 'producao/op_detail.html', {'form': form, 'search_prod_form': search_prod_form})     
     else:
         print('op_new/ 10')
         form = OP_detail_form()
-        return render(request, 'producao/op_detail.html', {'form': form})  
+        return render(request, 'producao/op_detail.html', {'form': form, 'search_prod_form': search_prod_form})  
 
 
 
@@ -222,6 +235,7 @@ def form_op(**kwargs):
 
 def op_detail(request, pk):
     op = get_object_or_404(OP, pk=pk)
+    search_prod_form = SearchProdForm
     #op_comp_fis_formset = formset_factory(OP_comp_fis_formset, OP_comp_fis_BaseFormSet, extra=0 )
     #formset_serv_interno = formset_serv_int(op = op)
 
@@ -242,6 +256,7 @@ def op_detail(request, pk):
         data['formset_serv_int'] = formset_serv_int(op = op) 
         data['formset_serv_ext'] = formset_serv_ext(op = op)     
         data['id'] = op.id
+        data['search_prod_form'] = search_prod_form
         return render(request, 'producao/op_detail.html', data)
 
 @transaction.atomic

@@ -109,6 +109,21 @@ class Orcamento_itens_formset(forms.Form):
 #pedido
 #
 #--------------------------------------
+
+
+PEDIDO_OPCOES = (
+    ('0','Ações em lote'),
+    ('1','Imprimir individual'),
+    ('2','Imprimir relatório'),
+    ('3','Agrupar'),
+    ('4','MRP'),
+    ('3', 'Somar')
+)
+
+class Pedido_acoes_lote_form(Form):
+    opcoes = forms.ChoiceField(choices = PEDIDO_OPCOES, label="")
+
+
 class PedidoDetailForm(forms.ModelForm):
     class Meta:
         model = Pedido

@@ -274,7 +274,7 @@ def nf_entrada_detail(request, pk):
 
 
 
-
+#Ordem de compra
 
 def oc_list(request):
     lista = Ordem_compra.objects.all()
@@ -380,6 +380,29 @@ def oc_prod_search(request):
     else:
         print('Prod search - ' + request.POST)
         return render(request, 'entrada/nf_entrada_prod_search.html' )
+
+
+    '''    qs = Prod.objects.only('cod', 'desc')
+    if request.method == 'GET':
+        filter = SearchProdForm(request.POST)
+        if 'cod' in request.POST:
+                    qs = qs.filter(cod__istartswith = request.POST['cod'])
+        if 'desc'in request.POST:
+            dd = request.POST['desc'].split(' & ')
+            for d in dd:
+                qs = qs.filter(desc__icontains = d)
+    else:
+        filter = SearchProdForm()
+
+    table = SearchProdTable(qs)
+    table.paginate(page=request.POST.get("page", 1), per_page=10)
+    return render(request, 'prod/prod_search.html', {'filter': filter, 'table': table})'''
+
+
+
+
+
+
 
 
 def oc_item_delete(request):

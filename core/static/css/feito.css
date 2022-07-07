@@ -20,12 +20,6 @@ body {
   line-clamp: 1;
   -webkit-line-clamp: 1;
 }
-.select2-container {
-  min-width: 4em !important;
-  height: 39px !important;
-  width: auto !important;
-}
-
 
 .form-control {
    height: 39px !important;
@@ -40,6 +34,7 @@ label {
   margin-bottom: 0rem;
   padding: 0.1rem;
 }
+
 .text-center {
   margin-bottom: 1rem;
   padding: 0rem;
@@ -55,4 +50,18 @@ label {
 
 .text-mail{
   font-size: 0.7rem;
+}
+
+.select2-container {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+  /* Important part */
+  .modal-dialog{
+    overflow-y: initial !important
+}
+.modal-body{
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
 }

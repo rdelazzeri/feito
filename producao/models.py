@@ -74,6 +74,12 @@ class OP(models.Model):
     def __str__(self) -> str:
         return self.produto.desc
 
+class OP_reserva(models.Model):
+    op = models.ForeignKey(OP, on_delete=CASCADE, related_name='op_reserva')
+    qtd_reserva = models.DecimalField(default=0, null=True, blank=True, max_digits=13, decimal_places=4)
+    
+    def __str__(self) -> str:   
+        return self.produto.desc
 
 class OP_componente_fisico(models.Model):
     op = models.ForeignKey(OP, on_delete=CASCADE, related_name='op_comp_fis')

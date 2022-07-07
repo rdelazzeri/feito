@@ -1,3 +1,4 @@
+from threading import active_count
 from django.contrib.auth.models import User
 from django.forms.formsets import formset_factory
 from django.shortcuts import redirect, render, get_object_or_404
@@ -20,12 +21,8 @@ from io import BytesIO
 from core.relatorio_txt import *
 from django.utils.safestring import mark_safe, SafeData
 from datetime import datetime, timedelta
-
-
-
-
-
-
+from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def atu_cmv():
     qr = Prod.objects.all()
@@ -204,24 +201,57 @@ def prod_list(request):
 def prod_search(request):
     qs = Prod.objects.only('cod', 'desc')
     if request.method == 'GET':
-        filter = SearchProdForm(request.POST)
-        if 'cod' in request.POST:
-                    qs = qs.filter(cod__istartswith = request.POST['cod'])
-        if 'desc'in request.POST:
-            dd = request.POST['desc'].split(' & ')
+        filter = SearchProdForm(request.GET)
+        if 'cod' in request.GET:
+                    qs = qs.filter(cod__istartswith = request.GET['cod'])
+        if 'desc'in request.GET:
+            dd = request.GET['desc'].split(' & ')
             for d in dd:
                 qs = qs.filter(desc__icontains = d)
     else:
         filter = SearchProdForm()
 
     table = SearchProdTable(qs)
-    table.paginate(page=request.POST.get("page", 1), per_page=10)
+    table.paginate(page=request.GET.get("page", 1), per_page=10)
     return render(request, 'prod/prod_search.html', {'filter': filter, 'table': table})
 
+
+def prod_search_modal(request):
+    data = dict()    
+    if request.method == 'POST':
+        print(request.POST)
+        qs = Prod.objects.only('id', 'cod', 'desc')
+        if 'cod' in request.POST and request.POST['cod'] != '':
+                    qs = qs.filter(cod__istartswith = request.POST['cod'])
+        if 'desc'in request.POST and request.POST['desc'] != '':
+            dd = request.POST['desc'].split(' & ')
+            for d in dd:
+                qs = qs.filter(desc__icontains = d)
+        if 'ativos'in request.POST and request.POST['ativos'] == True:
+            qs = qs.filter(ativo = True)
+        qs = qs.order_by(request.POST['ordem'])
+        nmax = int(request.POST['nmax'])
+        qs = qs[:nmax]
+
+
+
+        #pesq = request.POST.get('desc')
+        #prod = Prod.objects.only('id', 'cod', 'desc').filter(desc__istartswith = pesq)
+        data['table'] = render_to_string(
+            'prod/_prod_table.html',   
+            {'prods': qs},
+        )
+        #print('Pesquisa: ' + pesq)
+        #return HttpResponse(data['table'])
+        return JsonResponse(data)
+    else:
+        print('Prod search - ')
+        return render(request, 'comercial/orcamento_prod_search.html' )
 
 
 def prod_detail(request, prod_id):
     prod = get_object_or_404(Prod, pk=prod_id)
+    search_prod_form = SearchProdForm()
     if request.method == 'POST':
         #print(request.POST)
         act = request.POST['act']
@@ -232,7 +262,8 @@ def prod_detail(request, prod_id):
             pr = get_object_or_404(Prod, pk=prod_id)
             pr.delete()
             form = ProdDetailForm()
-            return render(request, 'prod/prod_detail.html', {'form': form})
+            context =  {'form': form, 'prod_id':prod_id, 'search_prod_form': search_prod_form}
+            return render(request, 'prod/prod_detail.html', context)
         elif act == 'save':
             print('act=save')
             #pr = get_object_or_404(Prod, pk=prod_id)
@@ -241,7 +272,8 @@ def prod_detail(request, prod_id):
                 print('form is valid')
                 #form = ProdDetailForm(form.cleaned_data)
                 form.save()
-            return render(request, 'prod/prod_detail.html', {'form': form})
+                context = {'form': form, 'prod_id':prod_id, 'search_prod_form': search_prod_form}
+            return render(request, 'prod/prod_detail.html', context)
         elif act =='composition':
             return redirect('prod:prod_comp', prod_id)
     else:
@@ -249,7 +281,9 @@ def prod_detail(request, prod_id):
         #print(instance)
         form = ProdDetailForm(request.POST or None, instance=instance)
         #print(form)
-        return render(request, 'prod/prod_detail.html', {'form': form, 'prod_id':prod_id})
+        
+        context =  {'form': form, 'prod_id':prod_id, 'search_prod_form': search_prod_form}
+        return render(request, 'prod/prod_detail.html', context)
 
     
 
@@ -265,5 +299,6 @@ def prod_new(request):
             return render(request, 'prod/prod_detail.html', {'form': form})
     else:
         form = ProdDetailForm()
-        return render(request, 'prod/prod_detail.html', {'form': form})
+        search_prod_form = SearchProdForm()
+        return render(request, 'prod/prod_detail.html', {'form': form, 'search_prod_form': search_prod_form})
 

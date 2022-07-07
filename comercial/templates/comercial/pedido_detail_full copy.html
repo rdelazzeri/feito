@@ -9,7 +9,7 @@
 {% endblock css %}
 
 {% block content %}
-{% include "comercial/_modal.html" %}
+
 
 <div class="jumbotron">
     <form method="post" id="form">
@@ -21,7 +21,7 @@
             <div class="form-group col-md-6 mb-0">
                 <button type="submit" name="act" value="save" class="btn btn-primary">Salvar</button>
                 <a href="/com/pedido/new"> <button type="button" class="btn btn-primary">Novo</button></a>
-                <a href="/com/pedido_full/search"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <a href="/com/pedido/list"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="submit" name="act" value="delete" class="btn btn-primary">Deletar</button>
                 <button type="button" name="nfe" id="entrega-add" class="btn btn-primary">Gerar Entrega</button>
 
@@ -42,9 +42,10 @@
             </div>
         </div>
         <div class="form-row">
-            <div class="form-group col-md-8 mb-0">
-                {{ form.cliente|as_crispy_field }}
-            </div>
+            <div class="input-group mb-3"></div>
+                <div class="form-group col-md-8 mb-0">
+                    {{ form.cliente|as_crispy_field }}
+                </div>
             <div class="form-group col-md-4 mb-0">
                 {{ form.vencimentos|as_crispy_field }}
             </div>
@@ -84,7 +85,7 @@
 
         <div class="form-row"></div>
             <div class="form-group col-md-2 mb-0">
-                <button id="modalFeito" class="btn btn-primary" >Pesquisar produtos</button>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#prod_search">Pesquisar Produtos</button>
             </div>
         </div>
 
@@ -107,16 +108,8 @@
 </div>
 
 
-{% include "comercial/prod_search.html" %}
-
-<div class="modal fade" id="alert_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
-      <div class="modal-content">
-          <div id="alert_data"></div>           
-      </div>
-    </div>
-  </div>
-
+<!-- {% include "comercial/_modal.html" %} -->
+{% include "prod/_modal.html" %}
 
 
 {% endblock content %}
@@ -126,47 +119,32 @@
 {{ form.media }}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script> 
 
+
+
 <script>
 
+function prod_selected(id){
+    const formData = new FormData();
+    formData.append('produto', id);
+    formData.append('pedido', '{{ pedido_id }}');
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch('{% url "comercial:pedido_item_add" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error.message);
+    });
+}
+
+
+
 $(function () {
-    $("#modalFeito").click(function(event){
-        event.preventDefault();
-        $("#pesquisa-prod").modal('show');
-    })
 
-    $("#pesquisar").click(function(event){
-        var pesq = $("#pesquisa").val();
-        $.ajax({
-            type: "GET",
-            url: "{% url 'comercial:pedidos_prod_search' %}",
-            data: {"pesquisa": pesq},
-            success: function(result){
-                $("#prod-tab").html(result) 
-            },
-            error: function(error){
-                alert(error)
-            }
-
-        })
-    })
-    $("#prod-tab").on("click", ".btnSelect", function(event){
-        event.preventDefault();
-        var currentRow = $(this).closest("tr"); 
-        var prod = currentRow.find("td:eq(0)").text();
-        var pedido_id = $("#pedido-id").text();
-        $.ajax({    
-            type: "POST",
-            url: "{% url 'comercial:pedido_item_add' %}",
-            data: {"produto": prod, "pedido": pedido_id, csrfmiddlewaretoken: '{{ csrf_token }}'},
-            success: function(result){
-                location.reload();
-                $("#pesquisa-prod").modal('toggle'); 
-            },
-            error: function(error){
-                alert(error)
-            }
-        });
-    })
     $("#pedido-itens").on("click", ".delete-item", function(event){
         event.preventDefault();
         var currentRow = $(this).closest("tr"); 

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+  <div class="form-row">
+    <div class="form-group col-md-4 mb-0">
+      <h4><strong>Contas a Receber</strong></h4>
+    </div>
+    <div class="form-group col-md-4 mb-0">
+      <form method="get" id="acao_lote"></form>
+      {{ lote.opcoes|as_crispy_field }}
+    </div>
+    <div class="form-group col-md-4 mb-0">
+      <button type="button" class="btn btn-primary" onclick="lote(this);">Executar</button>
+      <button id="filter" class="filter-pedido btn btn-primary" type="button" name="button" data-form-url="{% url 'financeiro:cp_filter' %}">
+        <span class="fa fa-filter mr-2"></span>Filtrar
+      </button>
+      <a href="/fin/cr/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+    </div>
+  </form>
+</div>
+
+  <p> </p>   
+  {% include "financeiro/cr_list_table.html" %}     
+
+
+</div>
+
+<div class="modal fade" id="filtro" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="send_mail">Filtro do Contas a Pagar</h5>       
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="container" id="filtro">
+          <form method="get" id="filtro-form">
+            {{ lista.form|crispy }}
+            <button type="submit" class="btn btn-primary" >Filtrar</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extrascripts %}
+<script type="text/javascript">
+
+  $(".detail").click(function(){
+    var url = $(this).attr('data-form-url');
+    location.href = url  
+  });
+
+  $(".read").click(function(){
+    var url = $(this).attr('data-form-url');
+    $(this).modalForm({formURL: $(this).data("form-url")}); 
+  });
+
+  $("#filter").click(function () {
+    $("#filtro").modal('toggle')
+  });
+
+
+  function toggle(source) {
+    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i] != source)
+            checkboxes[i].checked = source.checked;
+    }
+  }
+
+  function lote(source) {
+    let checkboxes = document.querySelectorAll('input[name="chk"]:checked');
+    let lote_opt = document.getElementById("id_opcoes").value
+    let values = [];
+    checkboxes.forEach((checkbox) => {
+        values.push(checkbox.value);
+    });
+    console.log(values);
+    console.log(lote_opt);
+    send_lote(values, lote_opt)
+  } 
+
+  function send_lote(chkeds, opt) {
+
+    let data = new FormData();
+    data.append('chkeds', chkeds);;
+    data.append('opt', opt);
+    // add form input from hidden input elsewhere on the page
+    data.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+
+    console.log(JSON.stringify(data))
+
+    fetch("{% url 'financeiro:cp_lote' %}", {
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
+        headers: {"X-CSRFToken": '{{ csrf_token }}'}
+    }).then((response) => {
+        console.log(response)
+    }).then((res) => {
+        if (res.status === 201) {
+            console.log("Post successfully created!")
+        }
+    }).catch((error) => {
+        console.log(error)
+    })
+  }
+
+</script>
+{% endblock extrascripts %}

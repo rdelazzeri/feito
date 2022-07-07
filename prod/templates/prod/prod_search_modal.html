@@ -1,0 +1,71 @@
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+    <div class="jumbotron">
+        <div class="form-row">
+            <h2><i class="fa fa user"></i>Pesquisa de Produtos</h2>
+        </div>
+        <div class="form-row">
+            <form class="form-inline" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ filter.cod|as_crispy_field }}
+                </div>
+                <div class="form-group">
+                    {{ filter.desc|as_crispy_field }}
+                </div>
+                    <button type="submit" class="prod-filtrar btn btn-primary">
+                        <span class="fa fa-pencil"></span>Filtrar
+                    </button>
+            </form> 
+        </div> 
+        <div class="form-row">
+            {% include "prod/_prod_table.html" %}
+        </div>     
+    </div>
+
+{% endblock %}
+
+{% block extrascripts %}
+
+<script>
+    jQuery.noConflict()("#pesquisar").click(function(event){
+        var pesq = $("#pesquisa").val();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_prod_search' %}",
+            data: {"pesquisa": pesq},
+            success: function(result){
+                $("#prod-tab").html(result) 
+            },
+            error: function(error){
+                alert(error)
+            }
+
+        })
+    });
+
+    jQuery.noConflict()("#prod-tab").on("click", ".btnSelect", function(event){
+        event.preventDefault();
+        var currentRow = $(this).closest("tr"); 
+        var prod = currentRow.find("td:eq(0)").text();
+        var fr_id = $("#fr-id").text();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'entradas:nf_entrada_item_add' %}",
+            data: {"produto": prod, "id": fr_id},
+            success: function(result){
+                location.reload();
+                $("#pesquisa-prod").modal('toggle'); 
+            },
+            error: function(error){
+                alert(error)
+            }
+        });
+    });
+
+</script>
+
+ 
+{% endblock extrascripts %}

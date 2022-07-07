@@ -38,9 +38,7 @@
             font-family: monospace;
             font-size: 0.7rem
         }
-        .select2-container {
-            min-width: 8em !important;
-        }
+
       </style>
 
     {% block css %}{% endblock css %}
@@ -82,8 +80,24 @@
     <!--  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.css" rel="stylesheet"/>  -->
     <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>  -->
     
-    
+    <!--
+    <script>
 
+      $(function () {
+      
+          // Fix select2 width
+          $(window).on('resize', function() {
+              $('.form-group').each(function() {
+                  var formGroup = $(this),
+                      formgroupWidth = formGroup.outerWidth();
+                  
+                  formGroup.find('.select2-container').css('width', formgroupWidth);
+                  
+              });
+          });
+        })
+    </script>
+  -->
     
     {% endblock scripts %}
 

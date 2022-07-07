@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load render_table from django_tables2 %}
-
+{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -14,12 +14,12 @@
       
       <div class="row">
         <div class="col-12 mb-3">
-          <button id="create-pedido-sync" class="btn btn-primary" type="button" name="button">
-            <span class="fa fa-plus mr-2"></span>Novo pedido (Sinc)
-          </button>
-          <button id="create-pedido-async" class="btn btn-primary" type="button" name="button">
-            <span class="fa fa-plus mr-2"></span>Novo pedido Asynchronous
-          </button>
+          <form method="get" id="acao_lote">
+            {{ lote.opcoes|as_crispy_field }}
+          </form>
+          <button type="button" class="btn btn-primary" onclick="lote(this);">Executar</button>
+          <button id="pedido-new" class="btn btn-primary" type="button" name="button">
+            <span class="fa fa-plus mr-2"></span>Novo pedido</button>
           <button id="filter-pedido" class="filter-pedido btn btn-primary" type="button" name="button" data-form-url="{% url 'comercial:pedido_filter' %}">
             <span class="fa fa-filter mr-2"></span>Filtrar pedidos
           </button>
@@ -47,8 +47,16 @@
   $(".pedido-full").click(function(){ 
   var url = $(this).attr('data-form-url');
   console.log(url);
-  window.open(url, '_blank');
-})
+  window.open(url, '_self');
+  })
+
+  $("#pedido-new").click(function(){ 
+    //var url = $(this).attr('data-form-url');
+    let url = "{% url 'comercial:pedido_new' %}"
+    //console.log(url);
+    window.open(url, '_self');
+  })
+
 </script>
 
   <script type="text/javascript">
@@ -173,4 +181,57 @@
           });
       });
   </script>
+
+
+
+<script>
+
+function toggle(source) {
+  var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i] != source)
+          checkboxes[i].checked = source.checked;
+  }
+}
+
+function lote(source) {
+  let checkboxes = document.querySelectorAll('input[name="chk"]:checked');
+  let lote_opt = document.getElementById("id_opcoes").value
+  let values = [];
+  checkboxes.forEach((checkbox) => {
+      values.push(checkbox.value);
+  });
+  console.log(values);
+  console.log(lote_opt);
+  send_lote(values, lote_opt)
+} 
+
+function send_lote(chkeds, opt) {
+
+  let data = new FormData();
+  data.append('chkeds', chkeds);;
+  data.append('opt', opt);
+  // add form input from hidden input elsewhere on the page
+  data.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+
+  console.log(JSON.stringify(data))
+
+  fetch("{% url 'comercial:pedido_lote' %}", {
+      method: 'POST',
+      body: data,
+      credentials: 'same-origin',
+      headers: {"X-CSRFToken": '{{ csrf_token }}'}
+  }).then((response) => {
+      console.log(response)
+  }).then((res) => {
+      if (res.status === 201) {
+          console.log("Post successfully created!")
+          console.log(res.resp)
+      }
+  }).catch((error) => {
+      console.log(error)
+  })
+}
+
+</script>
 {% endblock extrascripts %}

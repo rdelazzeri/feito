@@ -5,7 +5,7 @@ from . import views as v
 app_name = 'comercial'
 
 urlpatterns = [
-    path('', v.pedidos_list, name = 'pedidos_list'),
+    #path('', v.pedidos_list, name = 'pedidos_list'),
     path('detail/<ped_id>', v.pedido_detail, name = 'pedido_detail'),
     path('read/<int:pk>', v.Pedido_read.as_view(), name = 'pedido_read'),
     path('update/<int:pk>', v.Pedido_update.as_view(), name='pedido_update'),
@@ -17,13 +17,15 @@ urlpatterns = [
     path('pedido_add_item/', v.Pedido_add_item.as_view(), name='pedido_add_item'),
     
     #Pedido
+    path('pedido/list/', v.pedidos_list, name = 'pedidos_list'),
     path('pedido/new/', v.pedido_new, name='pedido_new'),
-    path('pedido_full/<pedido_id>', v.pedido_full, name = 'pedido_full'),
+    path('pedido_detail/<pedido_id>', v.pedido_detail, name = 'pedido_detail'),
     path('pedido_full/search/', v.pedidos_prod_search, name='pedidos_prod_search'),
     path('pedido_full/prod_selected/', v.pedido_item_add, name='pedido_item_add'),
     path('pedido_full/item_delete/', v.pedido_item_delete, name='pedido_item_delete'),
     path('pedido_full/create/', v.pedido_new, name='pedido_new'),
     path('pedido_full/entrega_add/', v.pedido_entrega_add, name='pedido_entrega_add'),
+    path('pedido_full/lote/', v.pedido_lote, name='pedido_lote'),
     #path('pedido_full/testaJson/', v.pedido_testaJson, name='pedido_testaJson'),
 
     #Orçamento

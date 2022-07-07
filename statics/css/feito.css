@@ -1,0 +1,59 @@
+
+.invalid {
+  color: #dc3545;
+  font-size: 80%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.footer {
+  margin: auto 0 0;
+  height: 56px;
+}
+.clamp {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+}
+
+
+
+.form-control {
+   height: 39px !important;
+}
+label {
+  margin-bottom: 0rem;
+}
+.form-group {
+   margin-bottom: 0.1rem;
+}
+.feito-table-0 {
+  margin-bottom: 0rem;
+  padding: 0.1rem;
+}
+.text-center {
+  margin-bottom: 1rem;
+  padding: 0rem;
+}
+.table td, .table th {
+  padding: 0.1rem;
+  vertical-align: top;
+  border-top: 0px solid #dee2e6;
+}
+.monospace {             
+    font-family: monospace;
+}
+
+.text-mail{
+  font-size: 0.7rem;
+}
+
+.select2-container {
+  width: 100% !important;
+  max-width: 100%;
+}

@@ -11,6 +11,7 @@ urlpatterns = [
    #path('del', v.prod_delete, name = 'prod_delete'),
     path('comp/<produto_id>', v.prod_comp, name='prod_comp'),
     path('search', v.prod_search, name = 'prod_search'),
+    path('search_modal', v.prod_search_modal, name = 'prod_search_modal'),
     path('prodSearch', v.produto_search, name = 'produto_search'),
     path('p<prod_id>', v.prod_detail, name = 'prod_detail'),
     path('print_comp/<prod>', v.print_comp, name = 'print_comp'),

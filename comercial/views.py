@@ -37,6 +37,8 @@ from io import BytesIO
 from reports.reports import Label_volumes
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .filters import Entregas_Filter
+from django.http import JsonResponse
+from prod.forms import SearchProdForm
 
 from bootstrap_modal_forms.generic import (
     BSModalLoginView,
@@ -49,79 +51,7 @@ from bootstrap_modal_forms.generic import (
 
 
 
-class Pedido_filter(BSModalFormView):
-    template_name = 'comercial/pedido_filter.html'
-    form_class = PedidoFilterForm
 
-    def form_valid(self, form):
-        self.filter = '?type=' + form.cleaned_data['type']
-        response = super().form_valid(form)
-        return response
-
-    def get_success_url(self):
-        return reverse_lazy('comercial:pedidos_list') + self.filter
-
-class Pedido_create(BSModalCreateView):
-    template_name = 'comercial/pedido_create.html'
-    form_class = PedidoModelForm
-    success_message = 'Success: Book was created.'
-    success_url = reverse_lazy('comercial:pedidos_list')
-  
-
-class Pedido_update(BSModalUpdateView):
-    model = Pedido
-    template_name = 'comercial/pedido_update.html'
-    form_class = PedidoModelForm
-    success_message = 'Success: Book was updated.'
-    success_url = reverse_lazy('comercial:pedidos_list')
-
-class Pedido_delete(BSModalDeleteView):
-    model = Pedido
-    template_name = 'comercial/pedido_delete.html'
-    success_message = 'Pedido Excluído.'
-    success_url = reverse_lazy('comercial:pedidos_list')
-
-
-
-class Pedido_add_item(BSModalCreateView):
-    template_name = 'comercial/pedido_add_item.html'
-    form_class = PedidoItemModelForm
-    success_message = 'Success: Book was created.'
-    #success_url = reverse_lazy('comercial:pedido')
-
-
-def pedidos_list(request):
-    ped = Pedido.objects.all()
-    table = PedidosTable(ped)
-    table.paginate(page=request.GET.get("page", 1), per_page=2)
-    return render(request, 'comercial/pedidos_list.html', {'table': table, 'pedidos': ped})
-  
-def pedidos(request):
-    data = dict()
-    if request.method == 'GET':
-        ped = Pedido.objects.all()
-        data['table'] = render_to_string(
-            'comercial/_pedidos_table.html',
-            {'pedidos': ped},
-            request=request
-        )
-        return JsonResponse(data)
-
-def pedido_detail(request, ped_id):
-    ped = Pedido.objects.get(pk=ped_id)
-    if request.method == "POST":
-        form = PedidoDetailForm(request.POST, ped)
-        if form.is_valid():
-            ped = form.save(commit=False)
-            ped.save()
-            return redirect('comercial:pedidos_list')       
-    else:
-        form = PedidoDetailForm(instance=ped)
-        return render(request, 'comercial/pedido_detail.html', {'form': form, 'pedido_id': ped})
-
-class Pedido_read(BSModalReadView):
-    model = Pedido
-    template_name = 'comercial/pedido_read.html'
 
 #--------------------------------------
 #
@@ -130,6 +60,7 @@ class Pedido_read(BSModalReadView):
 #--------------------------------------
 
 def orcamento_new(request):
+    search_prod_form = SearchProdForm()
     print('orcamento_new/00')
     if request.method == "POST":
         print('pedido_new/01')
@@ -165,6 +96,7 @@ def orcamento_list(request):
 
 
 def orcamento_detail(request, orcamento_id):
+    search_prod_form = SearchProdForm()
     orcamento = get_object_or_404(Orcamento, pk=orcamento_id)
     orcamento_itens = Orcamento_item.objects.filter(orcamento = orcamento.id)
     orcamento_itens_formset = formset_factory(Orcamento_itens_formset, Orcamento_itens_BaseFormSet, extra=0 )    
@@ -203,6 +135,7 @@ def orcamento_detail(request, orcamento_id):
                             itens_data.qtd = new_qtd
                             itens_data.pr_unit = it.cleaned_data.get('pr_unit')
                             itens_data.save()
+                
                 return redirect('comercial:orcamento_detail', orcamento.id)
             else:
                 print(formset.non_form_errors())
@@ -210,7 +143,8 @@ def orcamento_detail(request, orcamento_id):
     else:
         form = OrcamentoDetailForm(instance  = orcamento)
         print(request.GET)
-    return render(request, 'comercial/orcamento_detail.html', {'form': form, 'formset': formset, 'orcamento_id': orcamento.id})
+        context = {'form': form, 'formset': formset, 'orcamento_id': orcamento.id, 'search_prod_form': search_prod_form}
+        return render(request, 'comercial/orcamento_detail.html', context)
 
 def orcamento_prod_search(request):
     data = dict()    
@@ -223,15 +157,15 @@ def orcamento_prod_search(request):
         )
         print('Pesquisa: ' + pesq)
         return HttpResponse(data['table'])
-        return HttpResponse('oi')
+
     else:
         print('Prod search - ' + request.POST)
         return render(request, 'comercial/orcamento_prod_search.html' )
 
 def orcamento_item_add(request):
-    if request.method == 'GET':
-        produto = request.GET.get('produto')
-        orcamento = request.GET.get('orcamento')
+    if request.method == 'POST':
+        produto = request.POST.get('produto')
+        orcamento = request.POST.get('orcamento')
         print(produto)
         print(orcamento)
         orc = Orcamento.objects.get(pk=orcamento)
@@ -241,7 +175,9 @@ def orcamento_item_add(request):
         orc_it.produto = prod
         orc_it.save()
 
-        return HttpResponse('Produto adicionado')
+        data={}
+        data['status'] = 'Produto adicionado com sucesso'
+        return JsonResponse(data)
     else:
         return HttpResponse('nao é post')
 
@@ -306,8 +242,108 @@ def orcamento_pedido_add(request):
 #pedido
 #
 #--------------------------------------
+
+
+
+
+class Pedido_filter(BSModalFormView):
+    template_name = 'comercial/pedido_filter.html'
+    form_class = PedidoFilterForm
+
+    def form_valid(self, form):
+        self.filter = '?type=' + form.cleaned_data['type']
+        response = super().form_valid(form)
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy('comercial:pedidos_list') + self.filter
+
+
+class Pedido_create(BSModalCreateView):
+    template_name = 'comercial/pedido_create.html'
+    form_class = PedidoModelForm
+    success_message = 'Success: Book was created.'
+    success_url = reverse_lazy('comercial:pedidos_list')
+  
+
+class Pedido_update(BSModalUpdateView):
+    model = Pedido
+    template_name = 'comercial/pedido_update.html'
+    form_class = PedidoModelForm
+    success_message = 'Success: Book was updated.'
+    success_url = reverse_lazy('comercial:pedidos_list')
+
+
+class Pedido_delete(BSModalDeleteView):
+    model = Pedido
+    template_name = 'comercial/pedido_delete.html'
+    success_message = 'Pedido Excluído.'
+    success_url = reverse_lazy('comercial:pedidos_list')
+
+
+class Pedido_add_item(BSModalCreateView):
+    template_name = 'comercial/pedido_add_item.html'
+    form_class = PedidoItemModelForm
+    success_message = 'Success: Book was created.'
+    #success_url = reverse_lazy('comercial:pedido')
+
+import json
+from producao.services import MRP
+def pedido_lote(request):
+    print(list(request.POST.items()))
+    pedidos = [int(x) for x in request.POST.get('chkeds').split(',')]
+    opt = request.POST.get('opt')
+    print("Estes são os pedidos selecionados", pedidos, " com esta opcao: ", opt )
+    mrp = MRP()
+    mrp.mrp(pedidos)
+    mrp_list = mrp.get_mrp_list()
+    print(mrp_list)
+    dict = {'ret': 'mrp_list'}
+    return HttpResponse(json.dumps(dict), content_type='application/json')
+
+
+def pedidos_list(request):
+    ped = Pedido.objects.all()
+    table = PedidosTable(ped)
+    lote = Pedido_acoes_lote_form()
+    table.paginate(page=request.GET.get("page", 1), per_page=2)
+    return render(request, 'comercial/pedidos_list.html', {'table': table, 'pedidos': ped, 'lote': lote})
+  
+
+def pedidos(request):
+    data = dict()
+    if request.method == 'GET':
+        ped = Pedido.objects.all()
+        data['table'] = render_to_string(
+            'comercial/_pedidos_table.html',
+            {'pedidos': ped},
+            request=request
+        )
+        return JsonResponse(data)
+
+
+def pedido_detail(request, ped_id):
+    search_prod_form = SearchProdForm()
+    ped = Pedido.objects.get(pk=ped_id)
+    if request.method == "POST":
+        form = PedidoDetailForm(request.POST, ped)
+        if form.is_valid():
+            ped = form.save(commit=False)
+            ped.save()
+            return redirect('comercial:pedidos_list')       
+    else:
+        form = PedidoDetailForm(instance=ped)
+        return render(request, 'comercial/pedido_detail.html', {'form': form, 'pedido_id': ped})
+
+
+class Pedido_read(BSModalReadView):
+    model = Pedido
+    template_name = 'comercial/pedido_read.html'
+
+
 def pedido_new(request):
     print('pedido_new/00')
+    search_prod_form = SearchProdForm()
     if request.method == "POST":
         print('pedido_new/01')
         form = PedidoDetailForm(request.POST)
@@ -317,15 +353,15 @@ def pedido_new(request):
             ped = form.save(commit=False)
             ped.save()
             #return render(request, 'comercial/pedido_detail_full.html', {'form': form})
-            return redirect('comercial:pedido_full', ped.id) 
+            return redirect('comercial:pedido_detail', ped.id) 
         else:
             print('pedido_new/03')
             print(form)
-            return render(request, 'comercial/pedido_detail_full.html', {'form': form})     
+            return render(request, 'comercial/pedido_detail.html', {'form': form, 'search_prod_form': search_prod_form})     
     else:
         print('pedido_new/04')
         form = PedidoDetailForm()
-        return render(request, 'comercial/pedido_detail_full.html', {'form': form})
+        return render(request, 'comercial/pedido_detail.html', {'form': form, 'search_prod_form': search_prod_form})
 
 
 def pedidos_prod_search(request):
@@ -357,8 +393,11 @@ def pedido_item_add(request):
         ped_it.pedido = ped
         ped_it.produto = prod
         ped_it.save()
-
-        return HttpResponse('Produto adicionado')
+        
+        data={}
+        data['status'] = 'Produto adicionado com sucesso'
+        return JsonResponse(data)
+        
     else:
         return HttpResponse('nao é post')
 
@@ -383,7 +422,9 @@ def pedido_item_delete(request):
     else:
         return False
 
-def pedido_full(request, pedido_id):
+
+def pedido_detail(request, pedido_id):
+    search_prod_form = SearchProdForm()
     pedido = get_object_or_404(Pedido, pk=pedido_id)
     pedido_itens = Pedido_item.objects.filter(pedido = pedido.id)
     pedido_itens_formset = formset_factory(Pedido_itens_formset, Pedido_itens_BaseFormSet, extra=0 )    
@@ -425,14 +466,15 @@ def pedido_full(request, pedido_id):
                             itens_data.qtd = new_qtd
                             itens_data.pr_unit = it.cleaned_data.get('pr_unit')
                             itens_data.save()
-                return redirect('comercial:pedido_full', pedido.id)
+                return redirect('comercial:pedido_detail', pedido.id)
             else:
                 print(formset.non_form_errors())
             
     else:
         form = PedidoDetailForm(instance  = pedido)
         print(request.GET)
-    return render(request, 'comercial/pedido_detail_full.html', {'form': form, 'formset': formset, 'pedido_id': pedido.id})
+        context = {'form': form, 'formset': formset, 'pedido_id': pedido.id, 'search_prod_form': search_prod_form}
+        return render(request, 'comercial/pedido_detail.html', context)
 
 
 @transaction.atomic
@@ -969,15 +1011,18 @@ def pre_nota_add(request):
             pnf_parcela = Pre_nota_parcelas()
             pnf_parcela.pre_nota = pnf
             pnf_parcela.vencimento = parcela.vencimento.strftime('%Y-%m-%d')
+            print(pnf_parcela.vencimento)
             pnf_parcela.valor = parcela.valor_parcela
             pnf_parcela.save()
             cr = Conta_receber()
             cr.entrega = entrega
             cr.data_emissao = pnf.data_emissao
-            cr.parcela_num = str(pnf.num_nf) + str(i)
-            cr.vencimento = parcela.vencimento
+            cr.nf_num = pnf.num_nf
+            cr.parcela_num = str(i)
+            cr.data_vencimento = parcela.vencimento
             cr.valor_parcela = parcela.valor_parcela
             cr.conta_caixa = entrega.operacao.conta_caixa
+            cr.parceiro = entrega.cliente
             cr.save()
             
 

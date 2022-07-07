@@ -15,6 +15,7 @@
                 <a href="/prod/s"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
                 <button type="submit" name="act" value="delete" class="btn btn-primary">Deletar</button>
                 <button type="submit" name="act" value="composition" class="btn btn-primary">Composição</button>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#prod_search">Pesquisar Produtos</button>
             </div>
         </div>
         <div class="form-row">
@@ -25,7 +26,7 @@
                 {{ form.grupo|as_crispy_field }}
             </div>
             <div class="form-group col-md-3 mb-0">
-                {{ form.subGrupo|as_crispy_field }}
+                {{ form.subGrupo|as_crispy_field }} 
             </div>
             <div class="form-group col-md-3 mb-0">
                 {{ form.cod|as_crispy_field }}
@@ -133,4 +134,17 @@
         
     </form>
 </div>
+
+{% include "prod/_modal.html" %}
+
 {% endblock %}
+
+
+{% block extrascripts %}
+<script>
+    function prod_selected(id){
+            const url = "/prod/p" + id 
+            const mywindon = window.open(url, "_self")
+    }
+</script>
+{% endblock extrascripts %}

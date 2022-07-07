@@ -11,8 +11,24 @@ from django.forms.formsets import BaseFormSet
 from decimal import Decimal
 
 class SearchProdForm(forms.Form):
+
+    def __ini__(self, layout='0'):
+        '''
+        Layout define o padrao de exibicao de campos em cada  tela
+        '''
+        self.LAYOUT = layout
+
+    ORDEM_CHOICES = (
+    ('cod', 'CODIGO'),
+    ('desc', 'DESCRICAO'),
+    )
+
     cod = forms.CharField(max_length=30, label='Código', required=False)
     desc = forms.CharField(max_length=254, label='Descrição', required=False)
+    nmax = forms.IntegerField(label='Máximo', required=False, initial='100')
+    ativos = forms.BooleanField(label='Ativos', initial=True, required=False)
+    inativos = forms.BooleanField(label='Inativos', initial=False, required=False)
+    ordem = forms.ChoiceField(label='Ordem', choices=ORDEM_CHOICES)
 
 class ProdDetailForm(ModelForm):
 

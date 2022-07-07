@@ -85,9 +85,11 @@ class Origem(models.Model):
 
 class Conta_receber(models.Model):
     entrega = models.ForeignKey(Entrega, on_delete=CASCADE, null=True, blank=True, related_name='parcelas')
+    parceiro = models.ForeignKey('cadastro.Parceiro', on_delete=CASCADE, null=True, blank=True, related_name='contas_receber')
+    nf_num = models.IntegerField(default=0)
     parcela_num = models.IntegerField(default=0)
-    data_emissao = models.DateField()
-    vencimento = models.DateField()
+    data_emissao = models.DateField(null=True, blank=True)
+    data_vencimento = models.DateField(null=True, blank=True)
     valor_parcela = models.DecimalField(decimal_places=2, max_digits=13, default=0)
     conta_caixa = models.ForeignKey(Plano_contas, on_delete=PROTECT, null=True, blank=True)
     data_pagamento = models.DateField(null=True, blank=True)
@@ -95,7 +97,12 @@ class Conta_receber(models.Model):
     status = models.ForeignKey(Status, on_delete=PROTECT, null=True, blank=True)
     banco = models.ForeignKey(Banco, on_delete=PROTECT, null=True, blank=True)
     origem = models.ForeignKey(Origem, on_delete=PROTECT, null=True, blank=True)
-
+    obs = models.TextField(null=True, blank=True)
+    
+    class Meta: 
+        verbose_name = "Conta a Receber"
+        verbose_name_plural = "Contas a Receber"
+    
     def __str__(self):
         return 'num.: ' + str(self.parcela_num) + ' val: ' + str(self.valor_parcela)
 

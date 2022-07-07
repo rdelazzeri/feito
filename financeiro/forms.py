@@ -44,3 +44,40 @@ class CP_detail_form(ModelForm):
 
 class CP_acoes_lote_form(Form):
     opcoes = forms.ChoiceField(choices = CP_OPCOES, label="")
+
+
+CR_OPCOES = (
+    ('0','Ações em lote'),
+    ('1','Baixar com data de hoje'),
+    ('2','Baixar com data do vencimento'),
+    ('3','Emitir Boleto Banrisul'),
+    ('4','Enviar XML por e-mail'),
+    ('3', 'Somar')
+)
+
+class CR_acoes_lote_form(Form):
+    opcoes = forms.ChoiceField(choices = CR_OPCOES, label="")
+
+class CR_detail_form(ModelForm):
+    
+    #entrada = forms.CharField(max_length=60, label='Nota de entrada', required=False, disabled=False, widget=forms.TextInput(attrs={'size': '60'}))
+
+    class Meta:
+        model = Conta_receber
+        fields = '__all__'
+        widgets = {
+            'parceiro': autocomplete.ModelSelect2(
+                url='cadastro:nome-autocomplete',
+                attrs={'data-minimum-input-length': 3,
+                        'dropdownAutoWidth': True,
+                },
+                ),
+            'entrega': autocomplete.ModelSelect2(
+                url='financeiro:entrega-autocomplete',
+                attrs={'data-minimum-input-length': 3,
+                        'dropdownAutoWidth': True,
+                },
+                ),
+            
+        }
+

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+<div class="jumbotron">
+    <form method="post" id="MyForm">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                <h1>Contas a Receber</h1>
+            </div>
+            <div class="form-group col-md-6 mb-0">
+                <button type="submit" name="act" value="save"id="salvar" class="btn btn-primary">Salvar</button>
+                <a href="/fin/cr/new"> <button type="button" class="btn btn-primary">Novo</button></a>
+                <a href="/fin/cr/list"> <button type="button" class="btn btn-primary">Pesquisar</button></a>
+                <button type="submit" name="act" value="delete" class="btn btn-primary">Deletar</button>
+                <button type="button" class="btn btn-primary" onclick="quitar(this);">Quitar</button>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                {{ form.parceiro|as_crispy_field }}
+            </div>
+
+            <div class="form-group col-md-2 mb-0">
+                {{ form.nf_num|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.parcela_num|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-2 mb-0">
+                {{ form.data_emissao|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.data_vencimento|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.data_pagamento|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.valor_parcela|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.valor_pago|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.status|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.conta_caixa|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.banco|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                {{ form.origem|as_crispy_field }}
+            </div>
+        </div>       
+        <div class="form-row">
+            <div class="form-group col-md-12 mb-0">
+                {{ form.entrega|as_crispy_field }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12 mb-0">
+                {{ form.obs|as_crispy_field }}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extrascripts %}
+{{ form.media }}
+<script>
+     
+    const dt_emi = document.getElementById('id_data_emissao');
+    dt_emi.addEventListener("change", dt_emi_function);
+
+    const dt_venc = document.getElementById('id_data_vencimento');
+    dt_venc.addEventListener("change", dt_venc_function);
+
+    const dt_pgto = document.getElementById('id_data_pagamento');
+    dt_pgto.addEventListener("change", dt_pagamento_function);
+
+
+    function quitar(e) {
+        let dt = document.getElementById("id_data_vencimento").value
+        let val_parc = document.getElementById("id_valor_parcela").value
+        document.getElementById("id_data_pagamento").value = dt
+        document.getElementById("id_valor_pago").value = val_parc
+        document.getElementById("id_status").value = 2
+        document.getElementById("salvar").click()
+        };
+
+
+    function dt_emi_function(e) {
+        const today = new Date();
+        let dt = document.getElementById("id_data_emissao").value;
+        let new_date = addDays(today, dt);
+        document.getElementById("id_data_emissao").value = new_date
+        };
+
+
+    function dt_venc_function(e) {
+        let dt = retDate(document.getElementById("id_data_emissao").value);
+        let vc = document.getElementById("id_data_vencimento").value;
+        let new_date = addDays(dt, vc);
+        document.getElementById("id_data_vencimento").value = new_date
+        };
+
+    function dt_pagamento_function(e) {
+        let vc = retDate(document.getElementById("id_data_vencimento").value);
+        let pg = document.getElementById("id_data_pagamento").value;
+        let new_date = addDays(vc, pg);
+        document.getElementById("id_data_pagamento").value = new_date
+        };
+
+
+    function addDays(date, days) {
+        const isNum = checkValue(days);
+        console.log(isNum);
+        if (isNum){
+            const nDays = parseInt(days, 10);
+            var newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + nDays);
+            const dataFormatada = ((newDate.getDate() ) + "/" + ((newDate.getMonth() + 1)) + "/" + newDate.getFullYear());                 
+            return dataFormatada;        
+        } else {
+            return days
+        }
+        };
+
+    function checkValue(val){
+        const num = parseInt(val, 10);
+        console.log(num);
+        return !isNaN(val)
+        };
+    
+    function retDate(dateString){
+        var parts =dateString.split('/');
+        // Please pay attention to the month (parts[1]); JavaScript counts months from 0:
+        // January - 0, February - 1, etc.
+        var mydate = new Date(parts[2], parts[1] - 1, parts[0]); 
+        console.log(mydate.toDateString());
+        return mydate
+    }
+
+</script>
+
+{% endblock extrascripts %}
