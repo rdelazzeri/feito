@@ -30,6 +30,49 @@
           <p class="filtered-books">Filtered books.</p>
         {% endif %}
         {% include "comercial/_pedidos_table.html" %}
+        
+
+
+        <div class="modal fade bd-example-modal-xl" id="pesquisa-prod" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+          <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Lista MRP</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+              </div>
+              <div class="modal-body">
+      
+                  <form>
+                      <div class="form-row">
+                          <div class="form-group col-md-3 mb-3 justify-content-end">
+                              <label>Pesquisar</label>
+                          </div>
+                          <div class="form-group col-md-4 mb-0">
+                              <input name="pesquisa" id="pesquisa">
+                          </div>
+                          <div class="form-group col-md-3 mb-0 justify-content-end">
+                              <button type="button" class="btn btn-primary" id="pesquisar">Pesquisar</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          </div>
+      
+                      </div>
+                  </form>
+                  
+                  <div id="mrp_list"></div>               
+              </div>
+              <div class="modal-footer">
+      
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
         </div>
       </div>
     </div>
@@ -187,7 +230,7 @@
 <script>
 
 function toggle(source) {
-  var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  var checkboxes = document.querySelectorAll('input[name="chk"]');
   for (var i = 0; i < checkboxes.length; i++) {
       if (checkboxes[i] != source)
           checkboxes[i].checked = source.checked;
@@ -206,27 +249,44 @@ function lote(source) {
   send_lote(values, lote_opt)
 } 
 
-function send_lote(chkeds, opt) {
 
+function lote_mrp(source) {
+  let checkboxes = document.querySelectorAll('input[name="chk_mrp"]:checked');
+  let lote_opt = document.getElementById("id_opcoes").value
+  let values = [];
+  checkboxes.forEach((checkbox) => {
+      values.push(checkbox.value);
+  });
+  console.log(values);
+  console.log(lote_opt);
+  send_lote(values, lote_opt)
+} 
+
+
+function send_lote(chkeds, opt) {
+  
   let data = new FormData();
   data.append('chkeds', chkeds);;
   data.append('opt', opt);
   // add form input from hidden input elsewhere on the page
   data.append('csrfmiddlewaretoken', '{{ csrf_token }}')
-
   console.log(JSON.stringify(data))
-
+  
   fetch("{% url 'comercial:pedido_lote' %}", {
       method: 'POST',
       body: data,
       credentials: 'same-origin',
       headers: {"X-CSRFToken": '{{ csrf_token }}'}
-  }).then((response) => {
-      console.log(response)
-  }).then((res) => {
+  })
+  .then((resp) => resp.json())
+  .then((res) => {
+    console.log(res)
       if (res.status === 201) {
           console.log("Post successfully created!")
-          console.log(res.resp)
+          console.log(res.mrp_list)
+          let mrp_list = document.getElementById("mrp_list")
+          mrp_list.innerHTML = res.html
+          $('#pesquisa-prod').modal('show')
       }
   }).catch((error) => {
       console.log(error)

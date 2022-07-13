@@ -1,0 +1,87 @@
+
+
+
+
+<table id="mrp-list-table" class="table table-hover">
+  <thead class="thead-light ">
+  <tr>
+    <th class="text-center chkAll" scope="col"><input type="checkbox" onclick="toggle(this);"></th>
+    <th class="text-center" scope="col">Cliente</th>
+    <th class="text-center" scope="col">Data emissão</th>
+    <th class="text-center" scope="col">Pedido</th>
+    <th class="text-center" scope="col">Nivel</th>
+    <th class="text-center" scope="col">Produto</th>
+    <th class="text-center" scope="col">Necessidade</th>
+    <th class="text-center" scope="col">Disponível</th>
+    <th class="text-center" scope="col">Produzir</th>
+    <th class="text-center" scope="col">Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for it in page_obj.object_list %}
+    <tr>
+      <!-- <th class="text-center" scope="row">{{ forloop.counter }}</th> -->
+      <td class="text-center chk" ><input type="checkbox" name="chk_mrp" value="{{ it.pk }}"></td>
+      <td class="text-center" ><input type="number" name="qtd" value="{{ it.prduzir }}"></td>
+      <td class="text-center">{{ it.parceiro }}</td>
+      <td class="text-center">{{ it.data_emissao|date:"SHORT_DATE_FORMAT" }}</td>
+      <td class="text-center">{{ it.num }}</td>
+      <td class="text-center">{{ it.nivel }}</td>
+      <td class="text-center">{{ it.produto }}</td>
+      <td class="text-center">{{ it.necessidade }}</td>
+      <td class="text-center">{{ it.disponivel }}</td>
+      <td class="text-center">{{ it.produzir"}}</td>
+      <td class="text-center">{{ it.status }}</td>
+    </tr>
+  {% endfor %}
+
+  </tbody>
+</table>
+
+<!--
+<div>
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      {% if page_obj.has_other_pages %}
+        {% if page_obj.has_previous %}
+          {% if 'num' in request.get_full_path %}
+            <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="{% url 'comercial:entrega_list' %}?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% endif %}
+        {% else %}
+          <li class="disabled page-link"><span>Anterior</span></li>
+        {% endif %}
+        
+        
+        {% for i in page_obj.paginator.get_elided_page_range %}
+          {% if page_obj.number == i %}
+            <li class="page-item active">
+              <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+            </li>
+          {% else %}
+            {% if 'num' in request.get_full_path %}
+              <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ i }}">{{ i }}</a></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="{% url 'comercial:entrega_list' %}?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+
+        {% if page_obj.has_next %}
+          {% if 'num' in request.get_full_path %}
+            <li class="page-item"><a class="page-link" href="{{ request.get_full_path }}&page={{ page_obj.next_page_number }}">Próxima</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="{% url 'comercial:entrega_list' %}?page={{ page_obj.next_page_number }}">Próxima</a></li>
+          {% endif %}
+
+        {% else %}
+          <li class="disabled page-link "><span>Próxima</span></li>
+        {% endif %}
+
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+-->

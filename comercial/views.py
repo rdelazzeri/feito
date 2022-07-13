@@ -294,12 +294,23 @@ def pedido_lote(request):
     pedidos = [int(x) for x in request.POST.get('chkeds').split(',')]
     opt = request.POST.get('opt')
     print("Estes são os pedidos selecionados", pedidos, " com esta opcao: ", opt )
-    mrp = MRP()
-    mrp.mrp(pedidos)
-    mrp_list = mrp.get_mrp_list()
-    print(mrp_list)
-    dict = {'ret': 'mrp_list'}
-    return HttpResponse(json.dumps(dict), content_type='application/json')
+    if len(pedidos) > 0:
+        mrp = MRP()
+        mrp.mrp(pedidos)
+        mrp_list = mrp.get_mrp_list()
+        #print(mrp_list)
+        retorno = dict()
+        retorno['status'] = 201
+        retorno['mrp_list'] = mrp_list
+        #retorno em html
+        retorno['html'] = render_to_string(
+                'producao/_mrp_list_table.html',
+                {'mrp_list': mrp_list},
+                request=request
+            )
+        return HttpResponse(json.dumps(retorno), content_type='application/json')
+    else:
+        return HttpResponse(json.dumps(retorno), content_type='application/json')
 
 
 def pedidos_list(request):
@@ -415,7 +426,7 @@ def pedidos_prod_search_table(request):
 
 def pedido_item_delete(request):
     if request.method == 'POST':
-        pedido_item = request.GET.get('item_id')
+        pedido_item = request.POST.get('item_id')
         it = Pedido_item.objects.get(pk=pedido_item)
         it.delete()
         return HttpResponse('Produto excluido')

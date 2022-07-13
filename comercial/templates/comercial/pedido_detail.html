@@ -112,6 +112,13 @@
 {% include "prod/_modal.html" %}
 
 
+
+
+
+
+
+
+
 {% endblock content %}
 
 {% block extrascripts %}
@@ -148,7 +155,8 @@ $(function () {
     $("#pedido-itens").on("click", ".delete-item", function(event){
         event.preventDefault();
         var currentRow = $(this).closest("tr"); 
-        var item_id = currentRow.find("td:eq(10) input").val();
+        var item_id = currentRow.find("td:eq(11) input").val();
+        alert(item_id)
         $.ajax({
             type: "POST",
             url: "{% url 'comercial:pedido_item_delete' %}",

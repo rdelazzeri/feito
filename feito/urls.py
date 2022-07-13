@@ -17,5 +17,6 @@ urlpatterns = [
     path('est/', include('estoque.urls')),
     path('pr/', include('producao.urls')),
     path('rel/', include('reports.urls')),
+    path('caixa/', include('caixa.urls')),
     
 ]

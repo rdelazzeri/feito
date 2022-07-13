@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'cyber_sinc',
     'producao',
     'reports',
+    'caixa',
     
     #app de teste de popup
     'modalform',

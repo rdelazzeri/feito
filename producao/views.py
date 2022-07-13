@@ -14,6 +14,30 @@ from datetime import datetime, timedelta
 from prod.forms import SearchProdForm
 from django.http import JsonResponse
 
+
+
+#MRP
+def mrp_list(request):
+    '''
+    exibe a listagem de itens necessários para produzir
+    '''
+    pass
+
+
+def mrp_filter(request):
+    '''
+    filtro da tela do mrp_list
+    '''
+    pass
+
+
+
+
+
+
+
+
+#OP
 class ProdutoAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         print('nome-autocomplete')

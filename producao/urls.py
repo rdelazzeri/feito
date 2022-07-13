@@ -12,7 +12,9 @@ urlpatterns = [
     path('op/detail/delitem', v.op_delitem, name = 'op_delitem'),
     path('op/comp-fis/add', v.op_comp_fis_add, name = 'op_comp_fis_add'),
     path('pdf', v.pdf, name = 'pdf'),
-    
     path('rpt_op', v.rpt_op, name = 'rpt_op'),
-    path('op/prod_save', v.prod_save, name='prod_save')
+    path('op/prod_save', v.prod_save, name='prod_save'),
+    #MRP
+    path('mrp_list', v.mrp_list, name = 'mrp_list'),
+    path('mrp_filter', v.mrp_filter, name = 'mrp_filter'),
 ]
